@@ -8,7 +8,6 @@ RM := rm -rf
 
 # All of the sources participating in the build are defined here
 -include sources.mk
--include src/Models/subdir.mk
 -include src/subdir.mk
 -include subdir.mk
 -include objects.mk
@@ -39,19 +38,19 @@ endif
 # Add inputs and outputs from these tool invocations to the build variables 
 
 # All Target
-all: libTCPMessengerServer.a
+all: TCPMessengerServerCLI
 
 # Tool invocations
-libTCPMessengerServer.a: $(OBJS) $(USER_OBJS)
+TCPMessengerServerCLI: $(OBJS) $(USER_OBJS)
 	@echo 'Building target: $@'
-	@echo 'Invoking: GCC Archiver'
-	ar -r  "libTCPMessengerServer.a" $(OBJS) $(USER_OBJS) $(LIBS)
+	@echo 'Invoking: GCC C++ Linker'
+	g++ -L"/home/user/Desktop/network dev/lab-final/TCPMessengerServer/Debug" -L"/home/user/Desktop/network dev/lab-final/SocketUtils/Debug" -o "TCPMessengerServerCLI" $(OBJS) $(USER_OBJS) $(LIBS)
 	@echo 'Finished building target: $@'
 	@echo ' '
 
 # Other Targets
 clean:
-	-$(RM) $(CC_DEPS)$(C++_DEPS)$(ARCHIVES)$(C_UPPER_DEPS)$(CXX_DEPS)$(OBJS)$(CPP_DEPS)$(C_DEPS) libTCPMessengerServer.a
+	-$(RM) $(CC_DEPS)$(C++_DEPS)$(EXECUTABLES)$(C_UPPER_DEPS)$(CXX_DEPS)$(OBJS)$(CPP_DEPS)$(C_DEPS) TCPMessengerServerCLI
 	-@echo ' '
 
 .PHONY: all clean dependents
