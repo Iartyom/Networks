@@ -25,6 +25,7 @@ void printInstructions() {
 }
 
 int main() {
+	cout << __cplusplus << endl;
 	cout << "Welcome to TCP Messenger Client" << endl;
 	printInstructions();
 	TCPMessengerClient* client = new TCPMessengerClient();
