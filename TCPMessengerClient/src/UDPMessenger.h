@@ -9,6 +9,9 @@
 #include <pthread.h>
 #include "UDPSocket.h"
 #include "MThread.h"
+#include <stdlib.h>
+#include <iostream>
+#include <csignal>
 
 using namespace std;
 namespace npl{
@@ -21,8 +24,9 @@ class UDPMessenger: public MThread{
 	bool running;
 
 public:
+	string returnedMessege;
 	UDPMessenger();
-
+	void signalHandler(int signum);
 	/**
 	 * sends the given message to the given peer specified by IP
 	 */

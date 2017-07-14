@@ -20,6 +20,10 @@ public:
 };
 
 class Dispatcher : public MThread {
+	/**
+	 * listen to all peers and handle the incoming commands from the peer
+
+	 */
 	DispatcherHandler* handler;
 	vector<TCPSocket*> peers;
 

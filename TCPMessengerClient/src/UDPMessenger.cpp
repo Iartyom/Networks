@@ -11,14 +11,21 @@
 using namespace std;
 using namespace npl;
 
+
+void UDPMessenger::signalHandler( int signum ) {
+
+   exit(signum);
+
+}
 void UDPMessenger::run(){
 	char buff[1500];
-
+	signal(SIGINT, signalHandler);
 	while(running){
 		int rc = udpSocket->recv(buff,1500);
 		if (rc>0 && rc<1500){
 			buff[rc] = 0;
 			cout<<"\nreceive msg from:"<<udpSocket->fromAddr()<<endl<<">\""<<buff<<"\""<<endl;
+			this->returnedMessege = buff;
 		}
 	}
 	cout<<"closing receiver thread"<<endl;
