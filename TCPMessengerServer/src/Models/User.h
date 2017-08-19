@@ -17,7 +17,6 @@ class User {
 	string userName;
 	TCPSocket* socket;
 	bool busy;
-	string connectedRoomName;
 	User* connectedUser;
 	int listeningPort;
 
@@ -30,15 +29,14 @@ public:
 	string getIP();
 	int getPort();
 	TCPSocket* getSocket();
-	bool isBusy();
-	void setBusy(User* user);
-	void setBusy(string roomName);
-	string getConnectedRoomName();
 	User* getConnectedUser();
-	void setAvailable();
-
-	void setListeningPort(int port);
 	int getListeningPort();
+
+	bool isBusy();
+	
+	void setBusy(User* user);
+	void setAvailable();
+	void setListeningPort(int port);
 };
 
 #endif /* MODELS_USER_H_ */

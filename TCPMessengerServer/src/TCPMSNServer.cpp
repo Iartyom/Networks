@@ -14,29 +14,28 @@ using namespace std;
 namespace npl {
 
 TCPMSNServer::TCPMSNServer() {
+	usersRepository = new UsersRepository();
+	usersManager = new UsersManager(usersRepository);
 	server = new Server(this);
-	dispatcher = new Dispatcher(this);
-	brokerMng = new BrokerMng(this);
+	dispatcher = new Dispatcher(usersManager, this);
+	//brokerMng = new BrokerMng(this);
 }
 
 void TCPMSNServer::handlePeer(TCPSocket* peer) {
 	cout<<"new peer connected - "<<peer->fromAddr()<<endl;
-	this->dispatcher->addPeer(peer);
+	this->usersManager->addPeer(peer);
 }
-void TCPMSNServer::managePeerSession(TCPSocket* peer1, TCPSocket* peer2) {
-	this->brokerMng->createBroker(peer1, peer2);
+void TCPMSNServer::manageUsersGame(User* user1, User* user2) {
+	//this->brokerMng->createBroker(user1, user2);
 }
-void TCPMSNServer::handleReturnedPeer(TCPSocket* peer) {
-	this->dispatcher->addPeer(peer);
-}
+// void TCPMSNServer::handleReturnedPeer(TCPSocket* peer) {
+// 	this->dispatcher->addPeer(peer);
+// }
 
-void TCPMSNServer::listPeers() {
-	this->dispatcher->listPeers();
-}
 void TCPMSNServer::exit() {
-	this->brokerMng->close();
-	delete this->brokerMng;
-	cout<<"broker manager closed"<<endl;
+	// this->brokerMng->close();
+	// delete this->brokerMng;
+	// cout<<"broker manager closed"<<endl;
 	this->server->close();
 	delete this->server;
 	cout<<"server closed"<<endl;

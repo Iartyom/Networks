@@ -11,10 +11,10 @@
 
 namespace npl {
 
-Broker::Broker(TCPSocket* peer1, TCPSocket* peer2, BrokerMng* parent) {
+Broker::Broker(User* user1, User* user2, BrokerMng* parent) {
 	this->parent = parent;
-	this->peer1 = peer1;
-	this->peer2 = peer2;
+	this->user1 = user1;
+	this->user2 = user2;
 	this->isRunning = false;
 	this->start();
 }
@@ -22,8 +22,8 @@ Broker::Broker(TCPSocket* peer1, TCPSocket* peer2, BrokerMng* parent) {
 void Broker::run() {
 	cout << "broker thread started" << endl;
 	MTCPListener listener;
-	listener.add(this->peer1);
-	listener.add(this->peer2);
+	listener.add(this->user1->getSocket());
+	listener.add(this->user2->getSocket());
 	isRunning = true;
 	while (isRunning) {
 		TCPSocket* sourcePeer = listener.listen(2);
@@ -37,17 +37,15 @@ void Broker::run() {
 				targetPeer = this->peer1;
 			}
 
-			int command;
-			char data[1024];
-			TCPMessengerProtocol::readCommand(command, data, sourcePeer);
+			int command = TCPMessengerProtocol::readCommand(userSocket);
 			switch (command) {
-			case SEND_MSG_TO_PEER:
+			case GAME_ENDED:
 				cout << "sending message: " << sourcePeer->fromAddr() << " -> "
 						<< targetPeer->fromAddr() << endl;
-				TCPMessengerProtocol::sendCommand(command, data, targetPeer);
+				TCPMessengerProtocol::readData(command, data, targetPeer);
 
 				break;
-			case CLOSE_SESSION_WITH_PEER:
+				isRunning = false;
 			default:
 				cout << "closing session: " << sourcePeer->fromAddr() << " -> "
 						<< targetPeer->fromAddr() << endl;
@@ -57,8 +55,7 @@ void Broker::run() {
 			}
 		}
 	}
-	parent->releasePeer(peer1);
-	parent->releasePeer(peer2);
+	parent->gameEnded(user1, user2, result);
 	parent->deleteBroker(this);
 	delete this;
 

@@ -1,18 +1,19 @@
 /*
- * LoginManager.h
+ * UsersManager.h
  *
  *  Created on: Jul 14, 2017
  *      Author: user
  */
 
-#ifndef LOGINMANAGER_H_
-#define LOGINMANAGER_H_
+#ifndef UsersManager_H_
+#define UsersManager_H_
 
 #include <string.h>
 #include <map>
 #include <vector>
 #include<iostream>
-#include<fstream>
+#include <pthread.h>
+#include "Guard.h"
 #include "MThread.h"
 #include "TCPSocket.h"
 #include "MTCPListener.h"
@@ -27,29 +28,32 @@ public:
 	virtual void newUserLoggedIn(User* user)=0;
 	virtual ~LoginHandler(){}
 };
-class LoginManager : public MThread{
+class UsersManager : public MThread{
 	vector<TCPSocket*>* notLoggedInPeers;
+	vector<User*>* loggedInUsers;
 	UsersRepository* usersRepository;
 	bool isRunning;
+	pthread_mutex_t mutex;
 private:
 	void addToLoggedIn(string userName, TCPSocket* peer);
 	void removePeer(TCPSocket* peer);
+	void addPeer(TCPSocket* peer);
 public:
-	LoginManager(LoginHandler* handler, UsersRepository* usersRepository);
-	virtual ~LoginManager();
-
+	UsersManager(LoginHandler* handler, UsersRepository* usersRepository);
+	virtual ~UsersManager();
+	
 	bool login(string userName,string password);
 	bool registerUser(string userName, string password);
 	void logout(User* user);
 
-	vector<string> getAllUsers();
 	bool isUserLoggedIn(string userName);
 	vector<User*>* getLoggedInUsers();
 
-	void addPeer(TCPSocket* peer);
+	void addScore(User* user, int score);
+
 	void run();
 	void close();
 };
 }
 
-#endif /* LOGINMANAGER_H_ */
+#endif /* UsersManager_H_ */

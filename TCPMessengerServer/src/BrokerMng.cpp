@@ -15,16 +15,16 @@ BrokerMng::BrokerMng(BrokerMngHandler* handler) {
 	this->handler = handler;
 }
 
-void BrokerMng::createBroker(TCPSocket* peer1, TCPSocket* peer2) {
-	cout << "create new broker between:" << peer1->fromAddr() << " and "
-			<< peer2->fromAddr() << endl;
-	Broker* broker = new Broker(peer1, peer2, this);
+void BrokerMng::createBroker(User* user1, User* user2) {
+	cout << "create new broker between:" << user1->fromAddr() << " and "
+			<< user2->fromAddr() << endl;
+	Broker* broker = new Broker(user1, user2, this);
 	this->brokers.push_back(broker);
 }
 ;
 
-void BrokerMng::releasePeer(TCPSocket* peer) {
-	handler->handleReturnedPeer(peer);
+void BrokerMng::gameEnded(User* user1, User* user2, GAME_RESULT result) {
+	handler->handleGameEnded(peer);
 }
 void BrokerMng::deleteBroker(Broker* broker) {
 

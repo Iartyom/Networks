@@ -7,23 +7,27 @@
 
 #ifndef SRC_TCPMSNSERVER_H_
 #define SRC_TCPMSNSERVER_H_
+
 #include "Server.h"
 #include "Dispatcher.h"
 #include "BrokerMng.h"
+#include "UsersManager.h"
+#include "UsersRepository.h"
 
 namespace npl {
 
-class TCPMSNServer: public ServerHandler,DispatcherHandler,BrokerMngHandler {
+class TCPMSNServer: public ServerHandler,DispatcherHandler {
 	Server* server;
 	Dispatcher* dispatcher;
-	BrokerMng* brokerMng;
+	//BrokerMng* brokerMng;
+	UsersManager* usersManager;
+	UsersRepository* usersRepository;
 
 public:
 	TCPMSNServer();
 	virtual void handlePeer(TCPSocket* peer);
-	virtual void managePeerSession(TCPSocket* peer1, TCPSocket* peer2);
-	virtual void handleReturnedPeer(TCPSocket* peer);
-	void listPeers();
+	virtual void manageUsersGame(User* user1, User* user2);
+	//virtual void handleReturnedPeer(TCPSocket* peer);
 	void exit();
 
 };

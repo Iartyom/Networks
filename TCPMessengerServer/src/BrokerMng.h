@@ -17,7 +17,7 @@ namespace npl {
 
 class BrokerMngHandler{
 public:
-	virtual void handleReturnedPeer(TCPSocket* peer)=0;
+	virtual void handleGameEnded(TCPSocket* peer)=0;
 	virtual ~BrokerMngHandler(){}
 };
 
@@ -26,9 +26,9 @@ class BrokerMng {
 	list<Broker*> brokers;
 public:
 	BrokerMng(BrokerMngHandler* handler);
-	void createBroker(TCPSocket* peer1, TCPSocket* peer2);
+	void createBroker(User* user1, User* user2);
 
-	void releasePeer(TCPSocket* peer);
+	void gameEnded(User* user1, User* user2, GAME_RESULT result)
 	void deleteBroker(Broker* broker);
 	void close();
 };

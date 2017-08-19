@@ -75,6 +75,10 @@ public:
 	 * return the socket_fd
 	 */
 	int socket();
+
+	string getIP();
+
+	int getPort();
 };
 }
 #endif /* TCPSOCKET_H_ */

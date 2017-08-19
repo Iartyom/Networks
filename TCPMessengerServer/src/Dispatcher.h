@@ -7,15 +7,18 @@
 
 #ifndef SRC_DISPATCHER_H_
 #define SRC_DISPATCHER_H_
+
+#include "UsersManager.h"
 #include "TCPSocket.h"
 #include "MThread.h"
 #include <vector>
+#include "Models/User.h"
 
 namespace npl {
 
 class DispatcherHandler {
 public:
-	virtual void managePeerSession(TCPSocket* peer1, TCPSocket* peer2)=0;
+	virtual void manageUsersGame(User* user1, User* user2)=0;
 	virtual ~DispatcherHandler(){}
 };
 
@@ -25,18 +28,45 @@ class Dispatcher : public MThread {
 
 	 */
 	DispatcherHandler* handler;
-	vector<TCPSocket*> peers;
+	UsersManager* usersManager;
 
 	bool isRunning;
 private:
-	TCPSocket* findAvailablePeer(const char* peerAddr);
+	static vector<TCPSocket*>* getSockets(vector<User*>* users );
+	static User* getUserBySocket(vector<User*>* users, TCPSocket* sock);
+	static User* getUserByUserName(vector<User*>* users, string userName);
 
+	static void sendUser(TCPSocket* sock, User* user){
+		TCPMessengerProtocol::sendData(sock, user->getUserName());
+		TCPMessengerProtocol::sendData(sock, user->getIP());
+		TCPMessengerProtocol::sendInt(sock, user->getPort());
+		TCPMessengerProtocol::sendInt(sock, user->getListeningPort());
+	}
+
+	static User* readUser(TCPSocket* sock, User* user){
+		string userName = TCPMessengerProtocol::readData(sock);
+		string userIp = TCPMessengerProtocol::readData(sock);
+		int userPort = TCPMessengerProtocol::readInt(sock);
+		int listeningPort = TCPMessengerProtocol::readInt(sock);
+		return new User(userName, userIp, userPort, listeningPort);
+	}
+
+	void handleUser(User* user);
+
+	//game handling
+	void requestToStartGame(User* user);
+	void gameRequestRejected(User* requestedUser);
+	void gameRequestAccepted(User* requestedUser);
+	void startGameWithUser(User* sourceUser, User* targetUser);
+	void gameEnded(User* user);
+
+	//info handling
+	void sendOnlineUsers(User* user);
+	
 public:
-	Dispatcher(DispatcherHandler* handler);
+	Dispatcher(UsersManager* usersManager, DispatcherHandler* handler);
 	~Dispatcher(){}
-	void addPeer(TCPSocket* peer);
 	void run();
-	void listPeers();
 	void close();
 
 

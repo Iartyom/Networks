@@ -114,6 +114,13 @@ string TCPSocket::fromAddr() {
 	string port(portBuff);
 	return  ip + seperator + port;
 }
+int TCPSocket::getPort(){
+	return this->peerAddr.sin_port;
+}
+
+string TCPSocket::getIP(){
+	return inet_ntoa(this->peerAddr.sin_addr);
+}
 int TCPSocket::socket(){
 	return this->sock;
 }
