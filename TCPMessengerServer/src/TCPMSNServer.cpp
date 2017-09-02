@@ -15,7 +15,7 @@ namespace npl {
 
 TCPMSNServer::TCPMSNServer() {
 	usersRepository = new UsersRepository();
-	usersManager = new UsersManager(usersRepository);
+	usersManager = new UsersManager(usersRepository, this);
 	server = new Server(this);
 	dispatcher = new Dispatcher(usersManager, this);
 	//brokerMng = new BrokerMng(this);
@@ -31,17 +31,47 @@ void TCPMSNServer::manageUsersGame(User* user1, User* user2) {
 // void TCPMSNServer::handleReturnedPeer(TCPSocket* peer) {
 // 	this->dispatcher->addPeer(peer);
 // }
+void TCPMSNServer::newUserLoggedIn(User* user){
+	this->dispatcher->userLoggedIn();
+}
+void TCPMSNServer::printAllUsers(){
+	cout << "All Users: " << endl;
 
+	vector<string> users = this->usersRepository->getAllUsers();
+
+	vector<string>::iterator it = users.begin();
+	for(;it != users.end(); ++it){
+		cout << *it << endl;
+	}
+
+}
+void TCPMSNServer::printConnectedUsers(){
+	cout << "Connected Users: " << endl;
+
+	vector<User*>* users = this->usersManager->getLoggedInUsers();
+	//sem->lock();
+	vector<User*>::iterator it = users->begin();
+	for(;it != users->end(); ++it){
+		cout << (*it)->getUserName() << endl;
+	}
+	//sem->unlock();
+}
 void TCPMSNServer::exit() {
-	// this->brokerMng->close();
-	// delete this->brokerMng;
-	// cout<<"broker manager closed"<<endl;
 	this->server->close();
 	delete this->server;
 	cout<<"server closed"<<endl;
-	this->dispatcher->close();
-	delete this->dispatcher;
-	cout<<"dispatcher closed"<<endl;
+
+	if(this->dispatcher != NULL){
+		this->dispatcher->close();
+		delete this->dispatcher;
+		this->dispatcher = NULL;
+	}
+
+	if(this->usersManager != NULL){
+		this->usersManager->close();
+		delete this->usersManager;
+		this->usersManager = NULL;
+	}
 
 
 }

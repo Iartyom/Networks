@@ -12,15 +12,15 @@ User::User(string userName, TCPSocket* socket) {
 	this->socket = socket;
 	this->connectedUser = NULL;
 	this->busy = false;
-	this->listeningPort = 0;
+	this->initialIP = "";
 }
 
-User::User(string userName, string ip, int port, int listeningPort){
+User::User(string userName, string ip){
 	this->userName = userName;
 	this->socket = NULL;
+	this->initialIP = ip;
 	this->connectedUser = NULL;
 	this->busy = false;
-	this->listeningPort = listeningPort;
 }
 
 TCPSocket* User::getSocket(){
@@ -28,11 +28,10 @@ TCPSocket* User::getSocket(){
 }
 
 string User::getIP(){
+	if(this->socket==NULL){
+		return this->initialIP;
+	}
 	return this->socket->getIP();
-}
-
-int User::getPort(){
-	return this->socket->getPort();
 }
 
 string User::getUserName(){
@@ -55,14 +54,6 @@ User* User::getConnectedUser(){
 void User::setAvailable(){
 	this->busy = false;
 	this->connectedUser = NULL;
-}
-
-void User::setListeningPort(int port){
-	this->listeningPort = port;
-}
-
-int User::getListeningPort(){
-	return this->listeningPort;
 }
 
 User::~User() {

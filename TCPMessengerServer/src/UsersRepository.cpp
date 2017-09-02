@@ -4,11 +4,16 @@
  *  Created on: Jul 14, 2017
  *      Author: user
  */
-#include <string.h>
+
 #include "UsersRepository.h"
+#include <string.h>
+#include <vector>
+#include <sstream>
 using namespace std;
 namespace npl {
-	
+
+
+
 UsersRepository::UsersRepository()
 {
 	this->mutex = PTHREAD_MUTEX_INITIALIZER;
@@ -25,10 +30,22 @@ bool UsersRepository::login(string userName, string password)
 		while (usersFile.good())
 		{
 			getline(usersFile, line);
-			if (line.compare(userName + delimeter + str_hash(password)) == 0)
+
+			string buf; 
+			stringstream ss(line); 
+		
+			vector<string> values;
+
+			while (ss >> buf)
+				values.push_back(buf);
+
+			if (values[0].compare(userName) == 0)
 			{
-				returnValue = true;
+				if(values[1].compare(std::to_string(str_hash(password))) == 0){
+					returnValue = true;
+				}
 				break;
+				
 			}
 		}
 	}
@@ -40,7 +57,7 @@ bool UsersRepository::registerUser(string userName, string password)
 	ofstream usersFile;
 	Guard guard(&mutex);		
 	usersFile.open ("users.txt", std::ios_base::app);
-	usersFile << userName << " "<<str_hash(password)<<endl;
+	usersFile << userName << " "<<str_hash(password)<<" "<<0<<endl;
 	usersFile.close();
 	return true;
 }
@@ -78,7 +95,9 @@ bool UsersRepository::isUserExist(string userName)
 	return false;
 }
 
-void UsersRepository::addScore(string userName, int score)
+void UsersRepository::addScore(string userName, int score){
+
+}
 
 UsersRepository::~UsersRepository()
 {

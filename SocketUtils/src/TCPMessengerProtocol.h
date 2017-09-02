@@ -45,9 +45,11 @@
 
 //Game Results
 
-#define WINLOSE						1
-#define DRAW						11
-#define CANCELLED					111
+#define LOSE						21
+#define WIN						22
+
+#define DRAW						23
+#define CANCELLED					24
 
 namespace npl{
 

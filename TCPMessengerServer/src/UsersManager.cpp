@@ -9,8 +9,9 @@
 
 namespace npl {
 	
-UsersManager::UsersManager(LoginHandler *handler, UsersRepository *usersRepository)
+UsersManager::UsersManager(UsersRepository *usersRepository, LoginHandler* handler)
 {
+	this->loginHandler = handler;
 	this->mutex = PTHREAD_MUTEX_INITIALIZER;
 	this->usersRepository = usersRepository;
 	this->notLoggedInPeers = new vector<TCPSocket *>();
@@ -54,6 +55,7 @@ void UsersManager::run()
 				cout << "successfully logged in user: " << userName << endl;
 				TCPMessengerProtocol::sendCommand(peer, LOGIN);
 				this->addToLoggedIn(userName, peer);
+				this->loginHandler->newUserLoggedIn();
 			}
 			break;
 		case REGISTER:

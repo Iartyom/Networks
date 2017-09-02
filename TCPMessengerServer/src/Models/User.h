@@ -16,27 +16,24 @@ using namespace npl;
 class User {
 	string userName;
 	TCPSocket* socket;
+	string initialIP;
 	bool busy;
 	User* connectedUser;
-	int listeningPort;
 
 public:
 	User(string userName, TCPSocket* socket);
-	User(string userName, string ip, int port, int listeningPort);
+	User(string userName, string ip);
 	virtual ~User();
 
 	string getUserName();
 	string getIP();
-	int getPort();
 	TCPSocket* getSocket();
 	User* getConnectedUser();
-	int getListeningPort();
 
 	bool isBusy();
 	
 	void setBusy(User* user);
 	void setAvailable();
-	void setListeningPort(int port);
 };
 
 #endif /* MODELS_USER_H_ */

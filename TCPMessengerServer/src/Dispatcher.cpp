@@ -61,23 +61,24 @@ Dispatcher::Dispatcher(UsersManager* usersManager, DispatcherHandler* handler) {
 	this->usersManager = usersManager;
 	this->isRunning = false;
 }
-// void Dispatcher::addPeer(TCPSocket* peer) {
-// 	peers.push_back(peer);
-// 	if (!isRunning) {
-// 		isRunning = true;
-// 		start();
-// 	}
-// }
+
+void Dispatcher::userLoggedIn() {
+	if (!isRunning) {
+		isRunning = true;
+		start();
+	}
+}
 
 void Dispatcher::run() {
 	cout << "dispatcher started" << endl;
 	while (isRunning) {
-		// if (peers.size() == 0) {
-		// 	isRunning = false;
-		// 	break;
-		// }
+		vector<User*>* loggedUsers = this->usersManager->getLoggedInUsers()
+		if (loggedUsers->size() == 0) {
+			isRunning = false;
+			break;
+		}
 		MTCPListener listener;
-		vector<User*>* loggedUsers = this->usersManager->getLoggedInUsers();
+		;
 		vector<TCPSocket*>* userSockets = Dispatcher::getSockets(loggedUsers);
 		listener.add(*userSockets);
 		TCPSocket* userSocket = listener.listen(5);
@@ -160,69 +161,51 @@ void Dispatcher::gameRequestAccepted(User* requestedUser){
 
 void Dispatcher::startGameWithUser(User* sourceUser, User* targetUser){
 	cout <<"starting game between : " << sourceUser->getUserName() << "-> " << targetUser->getUserName() << endl;
-	srand(time(NULL));
-	int sourcePort = rand() % 1000 + MSNGR_CLIENT_PORT;
-	int targetPort;
-	do{
-		targetPort = rand() % 1000 + MSNGR_CLIENT_PORT;
-	}while(sourcePort == targetPort);
-
-	sourceUser->setListeningPort(sourcePort);
-	targetUser->setListeningPort(targetPort);
 
 	TCPMessengerProtocol::sendCommand(targetUser->getSocket(), START_GAME);
-	TCPMessengerProtocol::sendInt(targetUser->getSocket(), targetPort); // send the port should listen
 	Dispatcher::sendUser(targetUser->getSocket(), sourceUser);
 
 	TCPMessengerProtocol::sendCommand(sourceUser->getSocket(), START_GAME);
-	TCPMessengerProtocol::sendInt(sourceUser->getSocket(), sourcePort); // send the port should listen
 	Dispatcher::sendUser(sourceUser->getSocket(), targetUser);
 
 	sourceUser->setBusy(targetUser);
 	targetUser->setBusy(sourceUser);
-	//this->addSession(sourceUser->getUserName(), targetUser->getUserName());
 }
 
 void Dispatcher::gameEnded(User* user){
-	string opponentUserName = TCPMessengerProtocol::readData(user->getSocket());
-	User* opponentUser = Dispatcher::getUserByUserName(usersManager->loggedInUsers, opponentUserName);
 	int gameResult = TCPMessengerProtocol::readInt(user->getSocket());
-
+	
+	
+	
 	switch(gameResult){
-		case WINLOSE:
+		case WIN:
 			//updating users score
-			string winnerUserName = TCPMessengerProtocol::readData(user->getSocket());
-			int winnerScore = TCPMessengerProtocol::readInt(user->getSocket());
-			string loserUserName = TCPMessengerProtocol::readData(user->getSocket());
-			int loserScore = TCPMessengerProtocol::readInt(user->getSocket());
+			int score = TCPMessengerProtocol::readInt(user->getSocket());
+			this->usersManager->addScore(user, score);
+			cout <<"game ended: " << user->getUserName() << " win -> " << user->getConnectedUser() << endl;
 			
-			this->usersManager->addScore(Dispatcher::getUserByUserName(usersManager->loggedInUsers,winnerUserName), winnerScore);
-			this->usersManager->addScore(Dispatcher::getUserByUserName(usersManager->loggedInUsers,loserUserName), loserScore);
-			
-			TCPMessengerProtocol::sendCommand(opponentUser->getSocket(), GAME_ENDED);
-			TCPMessengerProtocol::sendData(opponentUser->getSocket(), user->getUserName());
-			TCPMessengerProtocol::sendInt(opponentUser->getSocket(), gameResult);
-			TCPMessengerProtocol::sendData(opponentUser->getSocket(), winnerUserName);
-			
-
 			break;
+		case LOSE:
+			int score = TCPMessengerProtocol::readInt(user->getSocket());
+			this->usersManager->addScore(user, score);
+			cout <<"game ended: " << user->getUserName() << " lost -> " << user->getConnectedUser() << endl;
+		
+			break;
+		
 		case DRAW:
-			int drawScore = TCPMessengerProtocol::readInt(user->getSocket());
-			this->usersManager->addScore(user, drawScore);
-			this->usersManager->addScore(opponentUser, drawScore);
-
-			TCPMessengerProtocol::sendCommand(opponentUser->getSocket(), GAME_ENDED);
-			TCPMessengerProtocol::sendData(opponentUser->getSocket(), user->getUserName());
-			TCPMessengerProtocol::sendInt(opponentUser->getSocket(), gameResult);
+			int score = TCPMessengerProtocol::readInt(user->getSocket());
+			this->usersManager->addScore(user, score);
+			cout <<"game ended draw: " << user->getUserName() << " -> " << user->getConnectedUser() << endl;
 			
 			break;
 		case CANCELLED:
 		default:
-			TCPMessengerProtocol::sendCommand(opponentUser->getSocket(), GAME_ENDED);
-			TCPMessengerProtocol::sendData(opponentUser->getSocket(), user->getUserName());
-			TCPMessengerProtocol::sendInt(opponentUser->getSocket(), gameResult);
-			
+			cout <<"game cancelled: " << user->getUserName() << " -> " << user->getConnectedUser() << endl;
+		
+		
 	}
+
+	user->setAvailable();
 	
 }
 
@@ -249,37 +232,18 @@ void Dispatcher::sendOnlineUsers(User* user){
 }
 
 
-
-// void Dispatcher::listPeers() {
-// 	vector<TCPSocket*>::iterator iter = peers.begin();
-// 	for (; iter != peers.end(); iter++) {
-// 		TCPSocket* peer = *iter;
-// 		cout << peer->fromAddr() << endl;
-// 	}
-// }
-void Dispatcher::close() {
-	// this->isRunning = false;
-	// this->waitForThread();
-
-	// vector<TCPSocket*>::iterator iter = peers.begin();
-	// for (; iter != peers.end(); iter++) {
-	// 	TCPSocket* peer = *iter;
-	// 	peer->close();
-	// 	delete peer;
-	// }
-	// this->peers.clear();
+void Dispatcher::disconnectUser(User* user){
+	if(user->isBusy()){
+		user->setAvailable();
+	}
+	TCPMessengerProtocol::sendCommand(user->getSocket(), EXIT);
+	this->usersManager->logout(user);
 }
 
-// TCPSocket* Dispatcher::findAvailablePeer(const char* peerAddr) {
-// 	vector<TCPSocket*>::iterator iter = peers.begin();
-// 	for (; iter != peers.end(); iter++) {
-// 		TCPSocket* sock = *iter;
-// 		if (strcmp(sock->fromAddr().c_str(), peerAddr) == 0) {
-// 			return sock;
-// 		}
-// 	}
-// 	return NULL;
+void Dispatcher::close() {
+	this->isRunning = false;
+	this->waitForThread();
+}
 
-// }
 
 } /* namespace npl */

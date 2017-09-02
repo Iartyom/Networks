@@ -39,20 +39,17 @@ private:
 	static void sendUser(TCPSocket* sock, User* user){
 		TCPMessengerProtocol::sendData(sock, user->getUserName());
 		TCPMessengerProtocol::sendData(sock, user->getIP());
-		TCPMessengerProtocol::sendInt(sock, user->getPort());
-		TCPMessengerProtocol::sendInt(sock, user->getListeningPort());
 	}
 
 	static User* readUser(TCPSocket* sock, User* user){
 		string userName = TCPMessengerProtocol::readData(sock);
 		string userIp = TCPMessengerProtocol::readData(sock);
-		int userPort = TCPMessengerProtocol::readInt(sock);
-		int listeningPort = TCPMessengerProtocol::readInt(sock);
-		return new User(userName, userIp, userPort, listeningPort);
+		return new User(userName, userIp);
 	}
 
+	void userLoggedIn();
 	void handleUser(User* user);
-
+	void disconnectUser(User* user);
 	//game handling
 	void requestToStartGame(User* user);
 	void gameRequestRejected(User* requestedUser);

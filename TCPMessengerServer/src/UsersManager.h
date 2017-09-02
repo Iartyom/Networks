@@ -25,13 +25,15 @@ using namespace std;
 namespace npl{
 class LoginHandler {
 public:
-	virtual void newUserLoggedIn(User* user)=0;
+	virtual void newUserLoggedIn()=0;
 	virtual ~LoginHandler(){}
 };
 class UsersManager : public MThread{
+	LoginHandler* loginHandler;
 	vector<TCPSocket*>* notLoggedInPeers;
 	vector<User*>* loggedInUsers;
 	UsersRepository* usersRepository;
+
 	bool isRunning;
 	pthread_mutex_t mutex;
 private:
@@ -39,7 +41,7 @@ private:
 	void removePeer(TCPSocket* peer);
 	void addPeer(TCPSocket* peer);
 public:
-	UsersManager(LoginHandler* handler, UsersRepository* usersRepository);
+	UsersManager(UsersRepository* usersRepository, LoginHandler* handler);
 	virtual ~UsersManager();
 	
 	bool login(string userName,string password);
