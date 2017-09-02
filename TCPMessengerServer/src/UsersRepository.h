@@ -13,6 +13,9 @@
 #include <fstream>
 #include <iostream>
 #include <tr1/functional>
+#include <string>
+#include <vector>
+using namespace std;
 
 namespace npl {
 	

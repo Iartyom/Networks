@@ -6,10 +6,8 @@
  */
 
 #include "UsersRepository.h"
-#include <string.h>
-#include <vector>
+
 #include <sstream>
-using namespace std;
 namespace npl {
 
 
@@ -96,7 +94,40 @@ bool UsersRepository::isUserExist(string userName)
 }
 
 void UsersRepository::addScore(string userName, int score){
+	std::fstream file("users.txt", std::ios::in);
+	
+	if(file.is_open()) {
+		std::string line;
+		std::vector<std::string> lines;
+	
+		while(std::getline(file, line)) {
+			std::cout << line << std::endl;
+	
+			string delimiter = " ";
+			string name = line.substr(0, line.find(delimiter));
+			if(name.compare(userName)==0){
+				string buf; 
+				stringstream ss(line); 
+			
+				vector<string> values;
+	
+				while (ss >> buf)
+					values.push_back(buf);
 
+				line = values[0]+ delimiter + values[1] + delimiter + 
+					std::to_string(std::stoi(values[2]) + score);
+			}
+			lines.push_back(line);
+		}
+	
+		file.close();
+		file.open("users.txt", std::ios::out | std::ios::trunc);
+	
+		for(const auto& i : lines) {
+			file << i << std::endl;
+		}
+		file.close();
+	}
 }
 
 UsersRepository::~UsersRepository()

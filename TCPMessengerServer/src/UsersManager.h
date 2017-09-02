@@ -39,10 +39,11 @@ class UsersManager : public MThread{
 private:
 	void addToLoggedIn(string userName, TCPSocket* peer);
 	void removePeer(TCPSocket* peer);
-	void addPeer(TCPSocket* peer);
+
 public:
 	UsersManager(UsersRepository* usersRepository, LoginHandler* handler);
 	virtual ~UsersManager();
+	void addPeer(TCPSocket* peer);
 	
 	bool login(string userName,string password);
 	bool registerUser(string userName, string password);

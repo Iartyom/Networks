@@ -19,11 +19,11 @@ namespace npl {
 
 
 vector<TCPSocket*>* Dispatcher::getSockets(vector<User*>* users ){
-	vector<TCPSocket*> sockets = new vector<TCPSocket*>();
+	vector<TCPSocket*>* sockets = new vector<TCPSocket*>();
 	vector<User*>::iterator it = users->begin();
 	for(; it != users->end(); ++it){
 		User* user = (*it);
-		sockets.push_back(user->getSocket());
+		sockets->push_back(user->getSocket());
 	}
 	return sockets;
 }
@@ -72,7 +72,7 @@ void Dispatcher::userLoggedIn() {
 void Dispatcher::run() {
 	cout << "dispatcher started" << endl;
 	while (isRunning) {
-		vector<User*>* loggedUsers = this->usersManager->getLoggedInUsers()
+		vector<User*>* loggedUsers = this->usersManager->getLoggedInUsers();
 		if (loggedUsers->size() == 0) {
 			isRunning = false;
 			break;
@@ -132,7 +132,7 @@ void Dispatcher::handleUser(User* user){
 //game handling
 void Dispatcher::requestToStartGame(User* user){
 	string targetUserName = TCPMessengerProtocol::readData(user->getSocket());
-	User* targetUser = Dispatcher::getUserByUserName(usersManager->loggedInUsers,targetUserName);
+	User* targetUser = Dispatcher::getUserByUserName(usersManager->getLoggedInUsers(),targetUserName);
 	if(targetUser == NULL || targetUser->isBusy()){
 		cout << targetUserName << " - no available user found" << endl;
 		TCPMessengerProtocol::sendCommand(user->getSocket(), SESSION_REFUSED);
@@ -145,7 +145,7 @@ void Dispatcher::requestToStartGame(User* user){
 
 void Dispatcher::gameRequestRejected(User* requestedUser){
 	string requestingUserName = TCPMessengerProtocol::readData(requestedUser->getSocket());
-	User* requestingUser = Dispatcher::getUserByUserName(usersManager->loggedInUsers,requestingUserName);
+	User* requestingUser = Dispatcher::getUserByUserName(usersManager->getLoggedInUsers(),requestingUserName);
 	cout << requestedUser->getUserName() << " rejected game request from " << requestingUser->getUserName() << endl;
 	
 	TCPMessengerProtocol::sendCommand(requestingUser->getSocket(), GAME_REQUEST_REJECTED);
@@ -153,7 +153,7 @@ void Dispatcher::gameRequestRejected(User* requestedUser){
 
 void Dispatcher::gameRequestAccepted(User* requestedUser){
 	string requestingtargetUserName = TCPMessengerProtocol::readData(requestedUser->getSocket());
-	User* requestingUser = Dispatcher::getUserByUserName(usersManager->loggedInUsers,requestingtargetUserName);
+	User* requestingUser = Dispatcher::getUserByUserName(usersManager->getLoggedInUsers(),requestingtargetUserName);
 	cout << requestedUser->getUserName() << " accepted game request from " << requestingUser->getUserName() << endl;
 	
 	startGameWithUser(requestingUser, requestedUser);
@@ -174,26 +174,26 @@ void Dispatcher::startGameWithUser(User* sourceUser, User* targetUser){
 
 void Dispatcher::gameEnded(User* user){
 	int gameResult = TCPMessengerProtocol::readInt(user->getSocket());
+	int score;
 	
-	
-	
+
 	switch(gameResult){
 		case WIN:
 			//updating users score
-			int score = TCPMessengerProtocol::readInt(user->getSocket());
+			score = TCPMessengerProtocol::readInt(user->getSocket());
 			this->usersManager->addScore(user, score);
 			cout <<"game ended: " << user->getUserName() << " win -> " << user->getConnectedUser() << endl;
 			
 			break;
 		case LOSE:
-			int score = TCPMessengerProtocol::readInt(user->getSocket());
+			score = TCPMessengerProtocol::readInt(user->getSocket());
 			this->usersManager->addScore(user, score);
 			cout <<"game ended: " << user->getUserName() << " lost -> " << user->getConnectedUser() << endl;
 		
 			break;
 		
 		case DRAW:
-			int score = TCPMessengerProtocol::readInt(user->getSocket());
+			score = TCPMessengerProtocol::readInt(user->getSocket());
 			this->usersManager->addScore(user, score);
 			cout <<"game ended draw: " << user->getUserName() << " -> " << user->getConnectedUser() << endl;
 			

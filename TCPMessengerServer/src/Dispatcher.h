@@ -47,7 +47,7 @@ private:
 		return new User(userName, userIp);
 	}
 
-	void userLoggedIn();
+
 	void handleUser(User* user);
 	void disconnectUser(User* user);
 	//game handling
@@ -63,6 +63,7 @@ private:
 public:
 	Dispatcher(UsersManager* usersManager, DispatcherHandler* handler);
 	~Dispatcher(){}
+	void userLoggedIn();
 	void run();
 	void close();
 
