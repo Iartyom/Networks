@@ -55,7 +55,7 @@ void UsersManager::run()
 				cout << "successfully logged in user: " << userName << endl;
 				TCPMessengerProtocol::sendCommand(peer, LOGIN);
 				this->addToLoggedIn(userName, peer);
-				this->loginHandler->newUserLoggedIn();
+				
 			}
 			break;
 		case REGISTER:
@@ -113,6 +113,7 @@ void UsersManager::addToLoggedIn(string userName, TCPSocket *peer)
 	this->removePeer(peer);
 	Guard guard(&mutex);	
 	this->loggedInUsers->push_back(new User(userName, peer));
+	this->loginHandler->newUserLoggedIn();
 }
 
 vector<User *> *UsersManager::getLoggedInUsers()
@@ -174,6 +175,7 @@ void UsersManager::logout(User *user)
 			return;
 		}
 	}
+	cout<< "user disconnected: "<<user->getUserName()<<endl;
 }
 
 void UsersManager::close()
