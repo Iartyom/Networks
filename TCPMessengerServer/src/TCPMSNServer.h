@@ -26,11 +26,12 @@ public:
 	TCPMSNServer();
 	virtual void handlePeer(TCPSocket* peer);
 	virtual void manageUsersGame(User* user1, User* user2);
-	virtual void newUserLoggedIn(User* user);
+	virtual void newUserLoggedIn();
 	//virtual void handleReturnedPeer(TCPSocket* peer);
 
 	void printAllUsers();
 	void printConnectedUsers();
+	void printScoreboard();
 	void exit();
 
 };

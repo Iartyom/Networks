@@ -51,6 +51,7 @@ public:
 
 	bool isUserLoggedIn(string userName);
 	vector<User*>* getLoggedInUsers();
+	vector<std::pair<string, int>> getScoreboard();
 
 	void addScore(User* user, int score);
 

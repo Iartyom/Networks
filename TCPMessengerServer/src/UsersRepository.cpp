@@ -8,6 +8,8 @@
 #include "UsersRepository.h"
 
 #include <sstream>
+#include <algorithm>
+
 namespace npl {
 
 
@@ -28,6 +30,8 @@ bool UsersRepository::login(string userName, string password)
 		while (usersFile.good())
 		{
 			getline(usersFile, line);
+
+			//split values of line by space
 
 			string buf; 
 			stringstream ss(line); 
@@ -67,9 +71,9 @@ vector<string> UsersRepository::getAllUsers()
 	ifstream usersFile("users.txt");
 	if (usersFile.is_open())
 	{
-		while (usersFile.good())
+		while (getline(usersFile, line))
 		{
-			getline(usersFile, line);
+			if(line.empty()) continue;
 			string delimiter = " ";
 			string userName = line.substr(0, line.find(delimiter));
 			users.push_back(userName);
@@ -78,6 +82,36 @@ vector<string> UsersRepository::getAllUsers()
 	usersFile.close();
 	return users;
 }
+vector<pair<string, int>> UsersRepository::getOrderedScoreboard(){
+	vector<pair<string, int>> usersWithScores;
+	string line;
+	Guard guard(&mutex);	
+	ifstream usersFile("users.txt");
+	if (usersFile.is_open())
+	{
+		while (usersFile.good())
+		{
+			getline(usersFile, line);
+			if(line.empty()) continue;
+			//split values of line by space
+			string buf; 
+			stringstream ss(line); 
+		
+			vector<string> values;
+
+			while (ss >> buf)
+				values.push_back(buf);
+			//push pair of <user, score>
+			usersWithScores.push_back(std::make_pair( values[0], std::stoi(values[2]) ));
+		}
+	}
+	usersFile.close();
+	guard.dispose();
+
+	std::sort(usersWithScores.begin(), usersWithScores.end(), scoreComparator);
+	return usersWithScores;
+}
+
 bool UsersRepository::isUserExist(string userName)
 {
 	vector<string> users = this->getAllUsers();
@@ -93,7 +127,9 @@ bool UsersRepository::isUserExist(string userName)
 	return false;
 }
 
-void UsersRepository::addScore(string userName, int score){
+bool UsersRepository::addScore(string userName, int score){
+	bool returnValue = false;
+	Guard guard(&mutex);
 	std::fstream file("users.txt", std::ios::in);
 	
 	if(file.is_open()) {
@@ -101,11 +137,12 @@ void UsersRepository::addScore(string userName, int score){
 		std::vector<std::string> lines;
 	
 		while(std::getline(file, line)) {
-			std::cout << line << std::endl;
 	
 			string delimiter = " ";
 			string name = line.substr(0, line.find(delimiter));
 			if(name.compare(userName)==0){
+
+				//split values of line by space
 				string buf; 
 				stringstream ss(line); 
 			
@@ -116,7 +153,11 @@ void UsersRepository::addScore(string userName, int score){
 
 				line = values[0]+ delimiter + values[1] + delimiter + 
 					std::to_string(std::stoi(values[2]) + score);
+
+				returnValue=true;
+
 			}
+			//std::cout << line << std::endl;
 			lines.push_back(line);
 		}
 	
@@ -128,6 +169,7 @@ void UsersRepository::addScore(string userName, int score){
 		}
 		file.close();
 	}
+	return returnValue;
 }
 
 UsersRepository::~UsersRepository()

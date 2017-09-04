@@ -12,8 +12,11 @@ using namespace std;
 using namespace npl;
 void printInstructions(){
 	cout<<"-----------------------"<<endl;
-	cout<<"lp - list peers"<<endl;
-	cout<<"x - shutdown server"<<endl;
+	cout<<"lu - list users"<<endl;
+	cout<<"lo - list online users"<<endl;
+	cout<<"ls - list scoreboard"<<endl;
+	cout<<"x - exit"<<endl;
+	
 	cout<<"-----------------------"<<endl;
 }
 int main() {
@@ -24,8 +27,12 @@ int main() {
 			string msg;
 			string command;
 			cin >> command;
-			if(command == "lp"){
-				msngrServer.listPeers();
+			if(command == "lu"){
+				msngrServer.printAllUsers();
+			}else if(command == "lo"){
+				msngrServer.printConnectedUsers();
+			}else if(command == "ls"){
+				msngrServer.printScoreboard(); 
 			}else if(command == "x"){
 				break;
 			}else{

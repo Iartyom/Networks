@@ -59,6 +59,7 @@ private:
 
 	//info handling
 	void sendOnlineUsers(User* user);
+	void sendScoreboard(User* user);
 	
 public:
 	Dispatcher(UsersManager* usersManager, DispatcherHandler* handler);

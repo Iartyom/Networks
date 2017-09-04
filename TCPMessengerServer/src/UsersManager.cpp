@@ -120,6 +120,10 @@ vector<User *> *UsersManager::getLoggedInUsers()
 	return this->loggedInUsers;
 }
 
+vector<std::pair<string, int>> UsersManager::getScoreboard(){
+	return this->usersRepository->getOrderedScoreboard();
+}
+
 bool UsersManager::isUserLoggedIn(string userName)
 {
 	Guard guard(&mutex);	
@@ -193,7 +197,7 @@ void UsersManager::close()
 }
 
 void UsersManager::addScore(User* user, int score){
-
+	this->usersRepository->addScore(user->getUserName(), score);
 }
 
 UsersManager::~UsersManager()

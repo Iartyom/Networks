@@ -31,7 +31,7 @@ void TCPMSNServer::manageUsersGame(User* user1, User* user2) {
 // void TCPMSNServer::handleReturnedPeer(TCPSocket* peer) {
 // 	this->dispatcher->addPeer(peer);
 // }
-void TCPMSNServer::newUserLoggedIn(User* user){
+void TCPMSNServer::newUserLoggedIn(){
 	this->dispatcher->userLoggedIn();
 }
 void TCPMSNServer::printAllUsers(){
@@ -53,6 +53,18 @@ void TCPMSNServer::printConnectedUsers(){
 	vector<User*>::iterator it = users->begin();
 	for(;it != users->end(); ++it){
 		cout << (*it)->getUserName() << endl;
+	}
+	//sem->unlock();
+}
+void TCPMSNServer::printScoreboard(){
+	int counter = 0;
+	vector<std::pair<string,int>> scoreboardVector = this->usersRepository->getOrderedScoreboard();
+
+	cout << "Scoreboard:" << endl;
+	vector<std::pair<string,int>>::iterator it = scoreboardVector.begin();
+	for(;it != scoreboardVector.end(); ++it){
+
+		cout <<++counter<< "Name: " <<(*it).first <<", Score: "<< (*it).second<< endl;
 	}
 	//sem->unlock();
 }

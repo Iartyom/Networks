@@ -115,7 +115,7 @@ void Dispatcher::handleUser(User* user){
 			this->sendOnlineUsers(user);
 			break;
 		case GET_SCOREBOARD:
-			
+			this->sendScoreboard(user);
 			break;
 		case EXIT:
 			this->disconnectUser(user);
@@ -231,6 +231,19 @@ void Dispatcher::sendOnlineUsers(User* user){
 	//sem->unlock();
 }
 
+void Dispatcher::sendScoreboard(User* user){
+	TCPSocket* userSocket = user->getSocket();
+	TCPMessengerProtocol::sendCommand(userSocket, GET_SCOREBOARD);
+
+	vector<std::pair<string,int>> scoreboardVector = this->usersManager->getScoreboard();
+
+	vector<std::pair<string,int>>::iterator it = scoreboardVector.begin();
+	for(;it != scoreboardVector.end(); ++it){
+		TCPMessengerProtocol::sendData(userSocket, (*it).first); //user name
+		TCPMessengerProtocol::sendInt(userSocket, (*it).second); //score
+	}
+
+}
 
 void Dispatcher::disconnectUser(User* user){
 	if(user->isBusy()){
