@@ -15,10 +15,10 @@
 #include <iostream>
 
 using namespace std;
-namespace npl{
+namespace npl {
 
-class UDPSocket{
-	struct sockaddr_in  s_in;
+class UDPSocket {
+	struct sockaddr_in s_in;
 	struct sockaddr_in from;
 	unsigned int fsize;
 	int socket_fd;

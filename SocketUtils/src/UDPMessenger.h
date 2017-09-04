@@ -5,32 +5,40 @@
 // Copyright   : Your copyright notice
 // Description : UDP Messenger application
 //============================================================================
+#ifndef MThread_H_
+#define MThread_H_
 
 #include <pthread.h>
 #include "UDPSocket.h"
+#include <mutex>
 #include "MThread.h"
-#include <stdlib.h>
-#include <iostream>
-#include <csignal>
-
+#include "TCPMessengerProtocol.h"
 using namespace std;
 namespace npl{
 
-
-class UDPMessenger: public MThread{
+class UDPMessenger: public MThread {
 	//TODO: declare the class properties
-	static const int MSNGR_PORT = 3344;
 	UDPSocket* udpSocket;
 	bool running;
+	bool connectedUser;
+	string number;
 
 public:
-	string returnedMessege;
+	bool isConnectedToUser();
+	void SetNumber(string s) {
+		this->number = s;
+	}
+	;
+
+	string GetNumber() {
+		return this->number;
+	}
+	;
 	UDPMessenger();
-	void signalHandler(int signum);
 	/**
 	 * sends the given message to the given peer specified by IP
 	 */
-	void sendTo(string msg,string ip);
+	void sendTo(string msg, string ip);
 
 	/**
 	 * reply to an incoming message, this method will send the given message
@@ -51,3 +59,4 @@ public:
 	void run();
 };
 }
+#endif

@@ -11,16 +11,30 @@
 #include "UDPMessenger.h"
 #include <iostream>
 #include <csignal>
+#include <stdlib.h>
+#include <pthread.h>
+
+#include "ConsoleLinux.h"
 using namespace npl;
-
-
+using namespace std;
 
 class GameApp {
+private:
+	bool game_over = false;
+	int next_number = 0;
+	bool first_number = false;
+	string boom = "boom";
+	string msg;
+	string command;
+	string ip;
+	int cur_number;
 public:
+
+	ConsoleLinux console;
 	GameApp();
 	void PrintInstructions();
 	void RunGame(string IP);
-	bool numberBoom(char* number);
+	bool numberBoom(int number);
 	void signalHandler(int signum);
 	virtual ~GameApp();
 

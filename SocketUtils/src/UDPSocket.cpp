@@ -13,9 +13,9 @@
 #include <unistd.h>
 #include <string.h>
 
-using namespace npl;
+namespace npl {
 
-UDPSocket::UDPSocket(int port){
+UDPSocket::UDPSocket(int port) {
 	/**
 	 * int socket(int domain, int type, int protocol);
 	 * creates a UDP socket
@@ -23,54 +23,55 @@ UDPSocket::UDPSocket(int port){
 	 * SOCK_DGRAM - UDP
 	 * 0 - default protocol type fo UDP
 	 */
-	socket_fd = socket (AF_INET, SOCK_DGRAM, 0);
+	socket_fd = socket(AF_INET, SOCK_DGRAM, 0);
 
 	// clear the s_in struct
-	bzero((char *) &s_in, sizeof(s_in));  /* They say you must do this    */
+	bzero((char *) &s_in, sizeof(s_in)); /* They say you must do this    */
 
 	//sets the sin address
-	s_in.sin_family = (short)AF_INET;
-	s_in.sin_addr.s_addr = htonl(INADDR_ANY);    /* WILDCARD */
-	s_in.sin_port = htons((u_short)port);
+	s_in.sin_family = (short) AF_INET;
+	s_in.sin_addr.s_addr = htonl(INADDR_ANY); /* WILDCARD */
+	s_in.sin_port = htons((u_short) port);
 
 	fsize = sizeof(from);
 
 	//bind the socket on the specified address
 	printf("UDP server binding...\n");
-	if(bind(socket_fd, (struct sockaddr *)&s_in, sizeof(s_in))<0){
-		perror ("Error naming channel");
+	if (bind(socket_fd, (struct sockaddr *) &s_in, sizeof(s_in)) < 0) {
+		perror("Error naming channel");
 	}
 }
 
-int UDPSocket::recv(char* buffer, int length){
+int UDPSocket::recv(char* buffer, int length) {
 	printf("UDP server receive loop...\n");
 	//ssize_t recvfrom(int sockfd, void *buf, size_t len, int flags,
 	//					struct sockaddr *src_addr, socklen_t *addrlen);
-	return recvfrom(socket_fd,buffer,length,0,(struct sockaddr *)&from,&fsize);
+	return recvfrom(socket_fd, buffer, length, 0, (struct sockaddr *) &from,
+			&fsize);
 }
 
-int UDPSocket::sendTo(const string& msg,const string& ip, int port){
+int UDPSocket::sendTo(const string& msg, const string& ip, int port) {
 	struct sockaddr_in toAddr;
-	memset((void *) &toAddr, 0,sizeof(toAddr));
+	memset((void *) &toAddr, 0, sizeof(toAddr));
 	toAddr.sin_family = AF_INET;
 	toAddr.sin_addr.s_addr = inet_addr(ip.data());
 	toAddr.sin_port = htons(port);
-	return sendto(socket_fd,msg.data(),msg.length(),0,(struct sockaddr *)&toAddr,sizeof(toAddr));
+	return sendto(socket_fd, msg.data(), msg.length(), 0,
+			(struct sockaddr *) &toAddr, sizeof(toAddr));
 }
 
-int UDPSocket::reply(const string& msg){
-	return sendto(socket_fd,msg.data(),msg.length(),0,(struct sockaddr *)&from,sizeof(from));
+int UDPSocket::reply(const string& msg) {
+	return sendto(socket_fd, msg.data(), msg.length(), 0,
+			(struct sockaddr *) &from, sizeof(from));
 }
 
-void UDPSocket::close(){
-	cout<<"closing socket"<<endl;
-	shutdown(socket_fd,SHUT_RDWR);
+void UDPSocket::close() {
+	cout << "closing socket" << endl;
+	shutdown(socket_fd, SHUT_RDWR);
 	::close(socket_fd);
 }
 
-string UDPSocket::fromAddr(){
+string UDPSocket::fromAddr() {
 	return inet_ntoa(from.sin_addr);
 }
-
-
-
+}

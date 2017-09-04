@@ -7,23 +7,107 @@
 //============================================================================
 
 #include <iostream>
-#include "TCPMessengerClient.h"
+#include "MessengerClient.h"
 
 using namespace npl;
 using namespace std;
 
 void printInstructions() {
+	cout << "c <IP> - connect to the server in the given ip" << endl;
+	//cout << "lu - print the user list from the server" << endl;
+	cout << "lcu - print the connected users list" << endl;
 
-	cout << "To open connection to server: c <server ip>>" << endl;
-	cout << "To open session with peer: o <peer ip:port>" << endl;
-	cout << "Opening session will close any previously active sessions" << endl;
-	cout << "After the session is opened, to send message type: s <message>"
+	cout << "login <user> <password> - login with the user and password"
 			<< endl;
-	cout << "To close open session type: cs" << endl;
-	cout << "To disconnect type: d" << endl;
-	cout << "To exit type: x" << endl;
+	cout
+			<< "register <user> <password> - register the new user with the given password and login the user."
+			<< endl;
+	cout << "o <username> - open a game with the user" << endl;
+
+	/*	cout << "s <message> - send a message" << endl;*/
+	cout
+			<< "l - print the current status of the client (connected to “xyz”/not connected)"
+			<< endl;
+	cout << "cs - disconnect the open game " << endl;
+	cout << "d - disconnect from server" << endl;
+	cout << "x - close the app" << endl;
 }
 
+
+bool handleCommand(string command, MessengerClient* client) {
+if (command == "c") {
+	string ip;
+	cin >> ip;
+	if (client->validateConnectedServer(true))
+		client->connect(ip);
+} /*else if (command == "lu") {
+ if (validateConnected(client))
+ client->printAllUsers();
+ }*/else if (command == "lcu") {
+	if (client->validateConnectedServer())
+		client->printConnectedUsers();
+}/* else if (command == "lr") {
+ if (validateConnected(client))
+ client->printAllRooms();
+ } else if (command == "lru") {
+ string roomName;
+ cin >> roomName;
+ if (validateConnected(client))
+ client->printRoomUsers(roomName);
+ }*/else if (command == "login") {
+	client->handleLogin();
+} else if (command == "register") {
+	client->handleRegister();
+} else if (command == "o") {
+	string userName;
+	cin >> userName;
+	if (client->validateConnectedServer() && client->validateLoggedIn())
+		client->startGameRequest(userName);
+}/* else if (command == "or") {
+ string roomName;
+ cin >> roomName;
+ if (validateConnected(client) && validateLoggedIn(client))
+ client->enterRoom(roomName);user_target
+ }*//* else if (command == "s") {
+ string message;
+ getline(cin, message);
+ if (validateConnected(client) && validateLoggedIn(client)
+ && validateActiveSession(client))
+ client->send(message);
+ }*/else if (command == "l") {
+	client->printStatus();
+} else if (command == "cs") {
+	if (client->validateActiveSession())
+		client->closeActiveSession();
+} else if (command == "d") {
+	if (client->validateConnectedServer())
+		client->disconnect();
+} else if (command == "x") {
+	return false;
+} else {
+	cout << "wrong input" << endl;
+	printInstructions();
+}
+return true;
+}
+
+int main() {
+cout << "Welcome to client" << endl;
+printInstructions();
+MessengerClient* client = new MessengerClient();
+bool running = true;
+while (running) {
+	string msg;
+	string command;
+	cin >> command;
+	running = handleCommand(command, client);
+}
+client->disconnect();
+delete client;
+cout << "client was closed" << endl;
+return 0;
+}
+/*
 int main() {
 	cout << __cplusplus << endl;
 	cout << "Welcome to TCP Messenger Client" << endl;
@@ -61,5 +145,5 @@ int main() {
 	client->disconnect();
 	delete client;
 	cout << "client closed" << endl;
-}
+}*/
 

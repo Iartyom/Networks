@@ -8,73 +8,127 @@
 #include "GameApp.h"
 
 GameApp::GameApp() {
-	// TODO Auto-generated constructor stub
-
+	console = ConsoleLinux();
 }
 
-void GameApp::PrintInstructions(){
-	cout<<"The Game"<<endl;
-	cout<<"the name of the game is 7 BOOM "<<endl;
-	cout<<"each player counts until he reaches a number witch has 7 in it "<<endl;
-	cout<<"or a number witch is a multiplication of 7 and then writes boom"<<endl;
-	cout<<"the first one to miss a boom loses "<<endl;
-	cout<<"To send a message type: s <message>"<<endl;
-	cout<<"To exit type: x"<<endl;
-}
+void GameApp::PrintInstructions() {
 
-bool GameApp::numberBoom(char* number){
-	int num =atoi(number);
+	console.setColor(COL_GREEN);
+	cout << "The Game - 7 BOOM " << endl;
+	console.setColor(COL_MAGENTA);
+	cout << "each player counts until he reaches a number witch has 7 in it "
+			<< endl;
+	cout << "or a number witch is a multiplication of 7 and then writes 'boom' "
+			<< endl;
+	cout << "the first one to miss a 'boom' loses " << endl;
+	console.setColor(COL_BLUE);
+	cout << "To send a message type: m <message>" << endl;
+	cout << "for the instructions type : i" << endl;
+	cout << "To exit type: e" << endl;
+	console.clearScreen();
+}
+/**
+ * checks if the number is a number + checks if it should be BOOM
+ */
+bool GameApp::numberBoom(int number) {
+
+//	int boomnum = atoi(number.c_str());
+	int boomnum = number;
 	int thisDigit;
-	if(number%7 ==0)
-		return 1;
-	while (number != 0)
-	{
 
-		thisDigit = number % 10;    // Always equal to the last digit of thisNumber
-	    number = number / 10;   // Always equal to thisNumber with the last digit
-	                                    // chopped off, or 0 if thisNumber is less than 10
-	    if (thisDigit == 7)
-	    {
-	        return 1;
-	    }
-	}
-	return 0;
-}
+	if (boomnum % 7 == 0)
+		return true;
+	while (boomnum != 0) {
 
-void GameApp::RunGame(string enemyIP){
-	cout<<"Welcome to The Game 7 Boom messenger"<<endl;
-		PrintInstructions();
-		UDPMessenger* messenger = new UDPMessenger();
-		while(true){
-			string msg;
-			string command;
-			cin >> command;
-			if(command == "s"){
-				if(msg.size()>0 && msg[0] == ' ') msg.erase(0,1);
-				messenger->sendTo(msg, enemyIP);
-			}else if(command == "x"){
-				break;
-			}else{
-				cout<<"wrong input"<<endl;
-				PrintInstructions();
-			}
+		thisDigit = boomnum % 10; // Always equal to the last digit of thisNumber
+		boomnum = boomnum / 10; // Always equal to thisNumber with the last digit
+		// chopped off, or 0 if thisNumber is less than 10
+		if (thisDigit == 7) {
+			return true;
 		}
-		messenger->close();
-		delete messenger;
-		cout<<"messenger was closed"<<endl;
+	}
+	return false;
 }
 
-void signalHandler( int signum ) {
-   cout << "Interrupt signal (" << signum << ") received.\n";
+void GameApp::RunGame(string enemyIP) {
+	//weclome + instracts
+	this->ip=enemyIP;
+	bool should_boom = false;
+	cout << "Welcome to The Game 7 Boom messenger" << endl;
+	PrintInstructions();
+	UDPMessenger* messenger = new UDPMessenger();
+	//main game UDP loop
+	while (true) {
+		//get command
+		cin >> command;
+		if (command == "m") {
 
-   // cleanup and close up stuff here
-   // terminate program
+			//cin >> ip;
+			getline(std::cin, msg);
 
-   exit(signum);
+			if (msg.size() > 0 && msg[0] == ' ')
+				msg.erase(0, 1);
+			//checks if the msg has digits or its not a legit game msg
+			bool has_only_digits = (msg.find_first_not_of("0123456789")
+					== string::npos);
+			if (has_only_digits == false && msg.compare(boom) != 0) {
+				cout
+						<< "the message was sent but please enter youre number! \n";
+				messenger->sendTo(msg, ip);
+			} //its a part of the game , checks validation
+			else {
+				int num = atoi(msg.c_str());
+				cur_number = num;
+				if (first_number == false) {
+					int num = atoi(msg.c_str());
+					first_number = true;
+					next_number = num;
+				}
+				should_boom = numberBoom(next_number);
+				if (cur_number != next_number && msg.compare(boom) != 0) {
+					cout << "wrong number, send the number in order \n";
+				} else if ((should_boom == true && msg.compare(boom) != 0)
+						|| (should_boom == false && msg.compare(boom) == 0)) {
+					console.setColor(COL_RED);
+					messenger->sendTo("BOOOOOOM!! you WIN i'm a loser \n", ip);
+					messenger->sendTo("GAME OVER \n", ip);
+					cout << "BOOOOOM!! damn i lost it \n";
+					cout << "GAME OVER \n";
+					console.clearScreen();
+					//break;
+					game_over = true;
+				} else {
+					messenger->sendTo("my number is:" + msg, ip);
+					next_number = next_number + 2;
+				}
+			}
+		} else if (command == "e") {
+			break;
+		}
+			 else if (command == "i") {
+				 PrintInstructions();
+			 }
+		 else {
+			cout << "wrong input" << endl;
+			PrintInstructions();
+		}
+	}
+	messenger->close();
+	delete messenger;
+	cout << "messenger was closed" << endl;
+}
+
+void signalHandler(int signum) {
+	cout << "Interrupt signal (" << signum << ") received.\n";
+
+// cleanup and close up stuff here
+// terminate program
+
+	exit(signum);
 
 }
 
 GameApp::~GameApp() {
-	// TODO Auto-generated destructor stub
+// TODO Auto-generated destructor stub
 }
 
