@@ -8,8 +8,8 @@
 #ifndef USERC_H_
 #define USERC_H_
 #include <string>
-#include "TCPMessengerProtocol.h"
-
+//#include "TCPMessengerProtocol.h"
+#define MSNGR_CLIENT_PORT 10000
 using namespace std;
 namespace npl {
 class User {

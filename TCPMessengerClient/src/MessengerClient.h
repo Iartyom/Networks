@@ -12,10 +12,10 @@
 #include <vector>
 #include "MThread.h"
 #include "TCPSocket.h"
-#include "UDPSocket.h"
+//#include "UDPSocket.h"
 #include "models/User.h"
-#include "UDPMessenger.h"
-#include "TCPMessengerProtocol.h"
+//#include "UDPMessenger.h"
+//#include "TCPMessengerProtocol.h"
 #include "GameApp.h"
 
 using namespace std;
