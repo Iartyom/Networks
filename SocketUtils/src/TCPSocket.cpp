@@ -27,8 +27,12 @@ TCPSocket::TCPSocket(int port) {
 
 	int optval = 1;
 
-	setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, &optval, sizeof optval);
-
+	if(setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, &optval, sizeof(optval)) < 0)
+		perror("setsockopt(SO_REUSEADDR) failed");
+	#ifdef SO_REUSEPORT
+		if (setsockopt(sock, SOL_SOCKET, SO_REUSEPORT, &optval, sizeof(optval)) < 0)
+			perror("setsockopt(SO_REUSEPORT) failed");
+	#endif
 	struct sockaddr_in serv_name;
 	bzero(&serv_name, sizeof(serv_name));
 	serv_name.sin_family = AF_INET;
