@@ -28,6 +28,8 @@ private:
 	string command;
 	string ip;
 	int cur_number;
+	UDPMessenger* messenger;
+	bool win ;
 public:
 
 	ConsoleLinux console;
@@ -37,7 +39,10 @@ public:
 	bool numberBoom(int number);
 	void signalHandler(int signum);
 	virtual ~GameApp();
+	bool isInsideGame();
+	void closeGameMessanger();
 
+	bool getWin();
 };
 
 #endif /* GAMEAPP_H_ */

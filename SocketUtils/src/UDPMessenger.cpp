@@ -9,7 +9,7 @@
 #include "UDPMessenger.h"
 
 using namespace std;
-namespace npl{
+namespace npl {
 
 void UDPMessenger::run() {
 
@@ -18,30 +18,36 @@ void UDPMessenger::run() {
 	while (running) {
 		int rc = udpSocket->recv(buff, 1500);
 		if (rc > 0 && rc < 1500) {
-			connectedUser=true;
+			connectedUser = true;
 			//changed = true;
 			buff[rc] = 0;
 			cout << "\nreceive msg from:" << udpSocket->fromAddr() << endl
 					<< ">\"" << buff << "\"" << endl;
+			if (strcmp(buff ,"end")==0) {
+			//	this->close();
+
+				needToClose= true;
+			}
 			//	this->SetNumber(s);                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          );
 		}
 	}
-	connectedUser=false;
+	connectedUser = false;
 	cout << "closing receiver thread" << endl;
 }
 
 UDPMessenger::UDPMessenger(int port) {
 	running = true;
-	connectedUser=false;
+	connectedUser = false;
 	udpSocket = new UDPSocket(port);
+	needToClose= false;
 	this->start();
 
 }
-bool UDPMessenger::isConnectedToUser(){
+bool UDPMessenger::isConnectedToUser() {
 	return this->connectedUser != NULL;
 }
 void UDPMessenger::sendTo(string msg, string ip, int port) {
-	connectedUser=true;
+	connectedUser = true;
 	udpSocket->sendTo(msg, ip, port);
 }
 
@@ -50,7 +56,7 @@ void UDPMessenger::reply(string msg) {
 }
 
 void UDPMessenger::close() {
-	connectedUser=false;
+	connectedUser = false;
 	running = false;
 	udpSocket->close();
 	this->waitForThread();

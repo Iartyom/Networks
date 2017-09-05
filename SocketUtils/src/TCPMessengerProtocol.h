@@ -46,7 +46,7 @@
 //Game Results
 
 #define LOSE						21
-#define WIN						22
+#define WIN							22
 
 #define DRAW						23
 #define CANCELLED					24

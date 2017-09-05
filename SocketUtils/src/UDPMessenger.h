@@ -11,8 +11,10 @@
 #include <pthread.h>
 #include "UDPSocket.h"
 #include <mutex>
+#include <string.h>
+
 #include "MThread.h"
-#include "TCPMessengerProtocol.h"
+
 using namespace std;
 namespace npl{
 
@@ -25,6 +27,7 @@ class UDPMessenger: public MThread {
 
 public:
 	bool isConnectedToUser();
+	bool needToClose ;
 	void SetNumber(string s) {
 		this->number = s;
 	}
@@ -39,7 +42,6 @@ public:
 	 * sends the given message to the given peer specified by IP
 	 */
 	void sendTo(string msg, string ip, int port);
-
 	/**
 	 * reply to an incoming message, this method will send the given message
 	 * the peer from which the last message was received.

@@ -43,7 +43,7 @@ UDPSocket::UDPSocket(int port) {
 }
 
 int UDPSocket::recv(char* buffer, int length) {
-	printf("UDP server receive loop...\n");
+	//printf("UDP server receive loop...\n");
 	//ssize_t recvfrom(int sockfd, void *buf, size_t len, int flags,
 	//					struct sockaddr *src_addr, socklen_t *addrlen);
 	return recvfrom(socket_fd, buffer, length, 0, (struct sockaddr *) &from,

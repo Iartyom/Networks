@@ -60,9 +60,10 @@ public:
 	virtual ~MessengerClient();
 	void setUserAwnser(string s);
 	bool getRequestedForGame();
+	void startRandomGame();
 	bool validateConnectedServer(bool reverse = false);
 	bool validateLoggedIn(bool reverse = false);
-	bool validateActiveSession();
+	void handleScore();
 	void handleLogin();
 	void handleRegister();
 	void handleAccept();
@@ -78,7 +79,9 @@ public:
 //	void connectUser(string userName);
 //	void enterRoom(string roomName);
 	void closeActiveGame(bool remote = false);
+	void gameEnded();
 	bool isActiveGame();
+	bool GameMassengerActive();
 	bool isConnectedWithUser();
 //	bool isConnectedWithRoom();
 	User* getActiveSessionUser();

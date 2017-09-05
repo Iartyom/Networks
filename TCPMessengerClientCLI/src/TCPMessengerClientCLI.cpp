@@ -19,16 +19,14 @@ void printInstructions() {
 
 	cout << "login <user> <password> - login with the user and password"
 			<< endl;
-	cout
-			<< "register <user> <password> - register the new user with the given password and login the user."
+	cout << "register <user> <password> - register a new protected user."
 			<< endl;
-	cout << "o <username> - open a game with the user" << endl;
-
+	cout << "game <username> - open a game with the user" << endl;
+	cout << "random - open a random game" << endl;
 	/*	cout << "s <message> - send a message" << endl;*/
-	cout
-			<< "l - print the current status of the client (connected to “xyz”/not connected)"
-			<< endl;
-	cout << "cs - disconnect the open game " << endl;
+	cout << "stat - print the current status of the client" << endl;
+	cout << "score - disconnect the open game " << endl;
+//	cout << "cs - disconnect the open game " << endl;
 	cout << "d - disconnect from server" << endl;
 	cout << "x - close the app" << endl;
 }
@@ -57,43 +55,39 @@ bool handleCommand(string command, MessengerClient* client) {
 		client->handleLogin();
 	} else if (command == "register") {
 		client->handleRegister();
-	} else if (command == "o") {
+	} else if (command == "game") {
 		string userName;
 		cin >> userName;
 		if (client->validateLoggedIn())
 			client->startGameRequest(userName);
-	}/* else if (command == "or") {
-	 string roomName;
-	 cin >> roomName;
-	 if (validateConnected(client) && validateLoggedIn(client))
-	 client->enterRoom(roomName);user_target
-	 }*//* else if (command == "s") {
-	 string message;
-	 getline(cin, message);
-	 if (validateConnected(client) && validateLoggedIn(client)
-	 && validateActiveSession(client))
-	 client->send(message);
-	 }*/else if (command == "l") {
+	} else if (command == "random") {
+		string userName;
+		cin >> userName;
+		if (client->validateLoggedIn())
+			client->startGameRequest(userName);
+	} else if (command == "stat") {
 		client->printStatus();
 	} else if (command == "cs") {
-		if (client->validateActiveSession())
+		if (client->isActiveGame())
 			client->closeActiveGame();
+	} else if (command == "score") {
+		client->handleScore();
 	} else if (command == "d") {
 		/*	if (client->validateConnectedServer())*/
 		client->disconnect();
 	} else if (command == "x") {
-		if (client->isActiveGame() != NULL) {
+		if (client->isActiveGame()) {
 			client->closeActiveGame();
 		}
-		if (client->isConnected() != NULL) {
+		if (client->isConnected()) {
 			client->disconnect();
 		}
 		delete client;
 		return false;
-	} else if ((command == "yes") && (client->getRequestedForGame()==true)) {
+	} else if ((command == "yes") && (client->getRequestedForGame() == true)) {
 		client->handleAccept();
 
-	} else if ((command == "no") && (client->getRequestedForGame()==true)) {
+	} else if ((command == "no") && (client->getRequestedForGame() == true)) {
 		client->handleReject();
 	} else {
 		cout << "wrong input" << endl;
@@ -108,13 +102,20 @@ int main() {
 	MessengerClient* client = new MessengerClient();
 	bool running = true;
 	while (running) {
-		string msg;
-		string command;
-		if (client->isActiveGame()==false)
-		cin >> command;
+		//string msg;
 
-		running = handleCommand(command, client);
-
+		if (client->isActiveGame()
+				&& (client->GameMassengerActive() == false)) {
+			client->gameEnded();
+			printInstructions();
+		} else if (client->isActiveGame()) {
+			sleep(1);
+			continue;
+		} else {
+			string command;
+			cin >> command;
+			running = handleCommand(command, client);
+		}
 	}
 	client->disconnect();
 	delete client;
