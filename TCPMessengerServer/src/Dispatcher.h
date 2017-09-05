@@ -39,14 +39,9 @@ private:
 	static void sendUser(TCPSocket* sock, User* user){
 		TCPMessengerProtocol::sendData(sock, user->getUserName());
 		TCPMessengerProtocol::sendData(sock, user->getIP());
+		TCPMessengerProtocol::sendData(sock, user->getUDPPort());
+		
 	}
-
-	static User* readUser(TCPSocket* sock, User* user){
-		string userName = TCPMessengerProtocol::readData(sock);
-		string userIp = TCPMessengerProtocol::readData(sock);
-		return new User(userName, userIp);
-	}
-
 
 	void handleUser(User* user);
 	void disconnectUser(User* user);

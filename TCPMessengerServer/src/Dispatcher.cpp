@@ -161,12 +161,23 @@ void Dispatcher::gameRequestAccepted(User* requestedUser){
 
 void Dispatcher::startGameWithUser(User* sourceUser, User* targetUser){
 	cout <<"starting game between : " << sourceUser->getUserName() << "-> " << targetUser->getUserName() << endl;
+	srand(time(NULL));
+	int sourceUDPPort = rand() % 1000 + MSNGR_CLIENT_PORT;
+	int targetUDPPort;
+	do{
+		targetUDPPort = rand() % 1000 + MSNGR_CLIENT_PORT;
+	}while(sourceUDPPort == targetUDPPort);
+
+	sourceUser->setUDPPort(sourceUDPPort);
+	targetUser->setUDPPort(targetUDPPort);
+	
+	TCPMessengerProtocol::sendCommand(sourceUser->getSocket(), START_GAME);
+	TCPMessengerProtocol::sendInt(sourceUser->getSocket(), sourceUDPPort);
+	Dispatcher::sendUser(sourceUser->getSocket(), targetUser);
 
 	TCPMessengerProtocol::sendCommand(targetUser->getSocket(), START_GAME);
+	TCPMessengerProtocol::sendInt(targetUser->getSocket(), targetUDPPort);
 	Dispatcher::sendUser(targetUser->getSocket(), sourceUser);
-
-	TCPMessengerProtocol::sendCommand(sourceUser->getSocket(), START_GAME);
-	Dispatcher::sendUser(sourceUser->getSocket(), targetUser);
 
 	sourceUser->setBusy(targetUser);
 	targetUser->setBusy(sourceUser);
@@ -246,10 +257,18 @@ void Dispatcher::sendScoreboard(User* user){
 }
 
 void Dispatcher::disconnectUser(User* user){
+	try{
 	if(user->isBusy()){
+		if(user->getConnectedUser()!=NULL){
+			TCPMessengerProtocol::sendCommand(user->getConnectedUser()->getSocket(), GAME_ENDED);
+			
+			user->getConnectedUser()->setAvailable();
+			
+		}
 		user->setAvailable();
 	}
-	TCPMessengerProtocol::sendCommand(user->getSocket(), EXIT);
+	TCPMessengerProtocol::sendCommandc(user->getSocket(), EXIT);
+}
 	this->usersManager->logout(user);
 }
 

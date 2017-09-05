@@ -15,14 +15,12 @@ User::User(string userName, TCPSocket* socket) {
 	this->initialIP = "";
 }
 
-User::User(string userName, string ip){
-	this->userName = userName;
-	this->socket = NULL;
-	this->initialIP = ip;
-	this->connectedUser = NULL;
-	this->busy = false;
+int User::getUDPPort(){
+	return this->port;
 }
-
+void User::setUDPPort(int port){
+	this->port = port;
+}
 TCPSocket* User::getSocket(){
 	return this->socket;
 }
@@ -54,6 +52,7 @@ User* User::getConnectedUser(){
 void User::setAvailable(){
 	this->busy = false;
 	this->connectedUser = NULL;
+	this->port = -1;
 }
 
 User::~User() {
