@@ -32,7 +32,7 @@ public:
 	User* getConnectedUser();
 
 	bool isBusy();
-	void setUDPPort();
+	void setUDPPort(int port);
 	void setBusy(User* user);
 	void setAvailable();
 };

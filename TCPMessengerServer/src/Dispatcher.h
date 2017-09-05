@@ -39,7 +39,7 @@ private:
 	static void sendUser(TCPSocket* sock, User* user){
 		TCPMessengerProtocol::sendData(sock, user->getUserName());
 		TCPMessengerProtocol::sendData(sock, user->getIP());
-		TCPMessengerProtocol::sendData(sock, user->getUDPPort());
+		TCPMessengerProtocol::sendInt(sock, user->getUDPPort());
 		
 	}
 

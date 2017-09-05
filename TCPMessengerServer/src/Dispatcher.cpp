@@ -257,7 +257,7 @@ void Dispatcher::sendScoreboard(User* user){
 }
 
 void Dispatcher::disconnectUser(User* user){
-	try{
+	
 	if(user->isBusy()){
 		if(user->getConnectedUser()!=NULL){
 			TCPMessengerProtocol::sendCommand(user->getConnectedUser()->getSocket(), GAME_ENDED);
@@ -267,8 +267,8 @@ void Dispatcher::disconnectUser(User* user){
 		}
 		user->setAvailable();
 	}
-	TCPMessengerProtocol::sendCommandc(user->getSocket(), EXIT);
-}
+	TCPMessengerProtocol::sendCommand(user->getSocket(), EXIT);
+
 	this->usersManager->logout(user);
 }
 
