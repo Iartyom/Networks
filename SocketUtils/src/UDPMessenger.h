@@ -34,11 +34,11 @@ public:
 		return this->number;
 	}
 	;
-	UDPMessenger();
+	UDPMessenger(int port);
 	/**
 	 * sends the given message to the given peer specified by IP
 	 */
-	void sendTo(string msg, string ip);
+	void sendTo(string msg, string ip, int port);
 
 	/**
 	 * reply to an incoming message, this method will send the given message

@@ -15,13 +15,12 @@ MessengerClient::MessengerClient() {
 	/*this->connectingUserName = "";
 	 this->connectingRoomName = "";*/
 	this->isHandlingServerData = false;
-	this->lock = new Semaphore(1);
+	this->requested_for_game = false;
 	this->msngrProtocol = new TCPMessengerProtocol();
 	game = NULL;
 	opponent = NULL;
 	this->isRunning = false;
 }
-
 
 bool MessengerClient::validateLoggedIn(bool reverse) {
 	if (!reverse) {
@@ -40,7 +39,7 @@ bool MessengerClient::validateLoggedIn(bool reverse) {
 }
 
 bool MessengerClient::validateActiveSession() {
-	if (!this->isActiveSession()) {
+	if (!this->isActiveGame()) {
 		cout << "You don't have active session" << endl;
 		return false;
 	}
@@ -63,7 +62,7 @@ void MessengerClient::handleRegister() {
 	string password;
 	cin >> userName;
 	cin >> password;
-	if (/*!validateConnectedServer() ||*/ !validateLoggedIn(true))
+	if (/*!validateConnectedServer() ||*/!validateLoggedIn(true))
 		return;
 
 	this->registerUser(userName, password);
@@ -78,13 +77,14 @@ void MessengerClient::printStatus() {
 		if (this->isLoggedIn()) {
 			status += (", logged in as: "
 					+ this->getCurrentUser()->getUserName());
-			if (this->isActiveSession()) {
+			if (this->isActiveGame()) {
 				status += (", in active session "
 						+ this->opponent->getUserName());
 
 			}
 		}
 	}
+	cout << status;
 }
 
 void MessengerClient::registerUser(string userName, string password) {
@@ -113,7 +113,7 @@ void MessengerClient::connect(string ip) {
 		cout << "failed to connect.. try again" << endl;
 		return;
 	}
-	cout<< "connected!!"<<endl;
+	cout << "connected!!" << endl;
 	this->start();
 }
 void MessengerClient::login(string userName, string password) {
@@ -125,19 +125,17 @@ void MessengerClient::login(string userName, string password) {
 	int command = msngrProtocol->readCommand(this->serverSocket);
 	//this->isHandlingServerData = true;
 	//now we wait for the server to answer if the login succeeded
-	cout << "here 1 "<<this->serverSocket->socket()<<endl;
-
-	cout << "here 2"<<endl;
 	if (command == LOGIN) {
 		this->currentUser = new User(userName); // the ip and port is not relevant for our user..
 		cout << "Login succeeded, you are now logged as: " << userName << " :) "
 				<< endl;
 	} else {
-		cout << "are you in already? ;)	OR Login failed, please try again, your user name or password are incorrect" << endl;
+		cout
+				<< "are you in already? ;)	OR Login failed, please try again, your user name or password are incorrect"
+				<< endl;
 	}
 	this->isHandlingServerData = false;
 }
-
 
 bool MessengerClient::isLoggedIn() {
 	return this->currentUser != NULL;
@@ -147,7 +145,7 @@ bool MessengerClient::isConnected() {
 	return this->serverSocket != NULL && this->serverSocket->socket() > 0;
 }
 
-bool MessengerClient::isActiveSession() {
+bool MessengerClient::isActiveGame() {
 	return this->game != NULL;
 }
 
@@ -160,14 +158,15 @@ void MessengerClient::printConnectedUsers() {
 
 	cout << "Connected Users: " << endl;
 //	vector<User*> users;
-	TCPMessengerProtocol::sendCommand(this->serverSocket, GET_ONLINE_USERS_LIST);
+	TCPMessengerProtocol::sendCommand(this->serverSocket,
+	GET_ONLINE_USERS_LIST);
 	// now we wait for the server to answer with the connected users list
 	int command = TCPMessengerProtocol::readCommand(this->serverSocket);
-	cout<< command<<endl;
 	if (command == GET_ONLINE_USERS_LIST) {
 		int usersLength = TCPMessengerProtocol::readInt(this->serverSocket);
 		for (int i = 0; i < usersLength; i++) {
-			cout << TCPMessengerProtocol::readData(this->serverSocket);
+			cout << "User name : "
+					<< TCPMessengerProtocol::readData(this->serverSocket);
 			cout << " Status : "
 					<< TCPMessengerProtocol::readData(this->serverSocket)
 					<< endl;
@@ -188,23 +187,17 @@ void MessengerClient::startGameRequest(string user_target) {
 	REQUEST_TO_START_GAME);
 	TCPMessengerProtocol::sendData(this->serverSocket, user_target);
 	//now we wait for the server to answer with game approval
-
-	int command = TCPMessengerProtocol::readCommand(this->serverSocket);
-	if (command == GAME_REQUEST_ACCEPTED) {
-		cout << "receiving opponent details." << endl;
-		opponent = MessengerClient::readUser(this->serverSocket);
-//starting the game aageinst opponents IP
-		game->RunGame(opponent->getIP());
-
-//if they refuse or we have a problem
-	} else if (command == SESSION_REFUSED) {
-		cout
-				<< "receiving opponent refusal , i think he hates you, or he's just busy"
-				<< endl;
-	} else {
-		cout << "starting game with:" << opponent->getUserName()
-				<< " failed for unknowen reason DAMN" << endl;
-	}
+	this->isHandlingServerData = false;
+}
+void MessengerClient::startGame() {
+	cout<<"starting game function"<<endl;
+	this->isHandlingServerData = true;
+	this->game=new GameApp();
+	int listening_port = TCPMessengerProtocol::readInt(this->serverSocket);
+	opponent = MessengerClient::readUser(this->serverSocket);
+	cout << "opening game by remote request with: " << opponent->getUserName()
+			<< endl;
+	game->RunGame(opponent->getIP(),opponent->getPort(),currentUser->getPort());
 	this->isHandlingServerData = false;
 }
 /*
@@ -219,7 +212,7 @@ void MessengerClient::startGameRequest(string user_target) {
  */
 
 void MessengerClient::disconnect() {
-	this->closeActiveSession(true);
+	this->closeActiveGame(true);
 
 	this->close(); // stop the run loop that listening to the server socket...
 
@@ -234,10 +227,11 @@ void MessengerClient::disconnect() {
 		delete this->serverSocket;
 		this->serverSocket = NULL;
 	}
-
+	cout << "disconnected from server" << endl;
 }
-void MessengerClient::closeActiveSession(bool remote) {
+void MessengerClient::closeActiveGame(bool remote) {
 	if (this->game != NULL) {
+		delete this->game;
 		if (remote) {
 			cout << "session closed by remote user" << endl;
 		}
@@ -246,8 +240,8 @@ void MessengerClient::closeActiveSession(bool remote) {
 
 void MessengerClient::run() {
 	this->isRunning = true;
-	while(this->isRunning){
-		if(this->isHandlingServerData){
+	while (this->isRunning) {
+		if (this->isHandlingServerData) {
 			sleep(1);
 			continue;
 		}
@@ -256,7 +250,7 @@ void MessengerClient::run() {
 		TCPSocket* readySocket = listener->listenToSocket();
 		listener->close();
 		delete listener;
-		if(readySocket == NULL || this->isHandlingServerData){
+		if (readySocket == NULL || this->isHandlingServerData) {
 			continue;
 		}
 		handle();
@@ -266,64 +260,38 @@ void MessengerClient::handle() {
 	int command = TCPMessengerProtocol::readCommand(this->serverSocket);
 	string userName;
 	//User* user;
-	int listeningPort;
+//	int listeningPort;
 	//commands to execute
 
 	switch (command) {
 
 	case REQUEST_TO_START_GAME: {
+		requested_for_game = true;
 		cout << "received open game request from: ";
-	//	listeningPort = TCPMessengerProtocol::readInt(this->serverSocket);
-		string potencialOpponent = TCPMessengerProtocol::readData(
+		//	listeningPort = TCPMessengerProtocol::readInt(this->serverSocket);
+		potencialOpponent = TCPMessengerProtocol::readData(
 				this->serverSocket);
 		//	user = this->readUser();
 		cout << potencialOpponent << endl;
-		cout << "write 'yes' to accept or 'no' to decline";
-		string awnser;
-		cin >> awnser;
-		if (awnser == "yes") {
-			this->closeActiveSession();
-			TCPMessengerProtocol::sendCommand(this->serverSocket,
-			GAME_REQUEST_ACCEPTED);
-//			this->currentUser->setListeningPort(listeningPort);
-			this->isHandlingServerData = true;
-			int command = TCPMessengerProtocol::readCommand(this->serverSocket);
-			if (command == START_GAME) {
-				opponent = MessengerClient::readUser(this->serverSocket);
-				cout << "opening game by remote request with: "
-						<< opponent->getUserName() << endl;
-				this->isHandlingServerData = false;
-				game->RunGame(opponent->getIP());
-			}
-		} else {
-			TCPMessengerProtocol::sendCommand(this->serverSocket,
-			GAME_REQUEST_REJECTED);
-			cout << "you rejected the genres offer";
+		cout << "write 'yes' to accept or 'no' to decline" << endl;
+
+	}
+		break;
+	case START_GAME: {
+		cout << "!start game!" << endl;
+		this->startGame();
+	}
+		break;
+	case GAME_REQUEST_REJECTED: {
+			cout << "receiving opponent refusal , i think he hates you, or he's just busy" << endl;
+			this->startGame();
 		}
-	}
-		break;
+			break;
 	case GAME_CANCEL: {
-		this->closeActiveSession(true);
+		this->closeActiveGame(true);
 	}
 		break;
-		/*
-		 case EXIT:
-		 this->closeActiveSession(true);
-		 break;
-		 case JOINED_ROOM:
-		 user = this->readUser();
-		 if (this->udpMessenger == NULL) {
-		 return;
-		 }
-		 this->udpMessenger->addUserToRoom(user);
-		 break;
-		 case LEFT_ROOM:
-		 userName = TCPMessanger::readData(this->serverSocket);
-		 if (this->udpMessenger == NULL) {
-		 return;
-		 }
-		 this->udpMessenger->removeUserFromRoom(userName);
-		 break;*/
+
 	case EXIT: {
 		cout << "disconnect from the server by remote command" << endl;
 		this->disconnect();
@@ -334,8 +302,26 @@ void MessengerClient::handle() {
 	}
 	}
 }
-
-
+void MessengerClient::handleAccept() {
+	requested_for_game = false;
+	TCPMessengerProtocol::sendCommand(this->serverSocket,
+	GAME_REQUEST_ACCEPTED);
+	TCPMessengerProtocol::sendData(this->serverSocket, potencialOpponent);
+	potencialOpponent = "";
+}
+void MessengerClient::handleReject() {
+	requested_for_game = false;
+	TCPMessengerProtocol::sendCommand(this->serverSocket,
+	GAME_REQUEST_REJECTED);
+	TCPMessengerProtocol::sendData(this->serverSocket, potencialOpponent);
+	potencialOpponent = "";
+}
+void MessengerClient::setUserAwnser(string s) {
+	this->user_awnser = s;
+}
+bool MessengerClient::getRequestedForGame() {
+	return this->requested_for_game;
+}
 void MessengerClient::close() {
 	this->isRunning = false;
 	this->waitForThread();
@@ -460,20 +446,20 @@ MessengerClient::~MessengerClient() {
  }
  */
 /*
-bool MessengerClient::validateConnectedServer(bool reverse) {
-	if (!reverse) {
-		if (!this->isConnected()) {
-			cout << "You must connect to a server first!" << endl;
-			return false;
-		}
-		return true;
-	}
-	if (this->isConnected()) {
-		cout << "You already connected to a server" << endl;
-		return false;
-	}
-	return true;
-}*/
+ bool MessengerClient::validateConnectedServer(bool reverse) {
+ if (!reverse) {
+ if (!this->isConnected()) {
+ cout << "You must connect to a server first!" << endl;
+ return false;
+ }
+ return true;
+ }
+ if (this->isConnected()) {
+ cout << "You already connected to a server" << endl;
+ return false;
+ }
+ return true;
+ }*/
 /*
  void MessengerClient::printRoomUsers(string roomName){
  this->isHandlingServerData = true;
@@ -526,7 +512,7 @@ bool MessengerClient::validateConnectedServer(bool reverse) {
 
 /*
  void MessengerClient::connectUser(string userName) {
- this->closeActiveSession();
+ this->closeActiveGame();
  if (userName.compare(this->currentUser->getUserName()) == 0) {
  cout << "unable to create session with yourself silly :)" << endl;
  return;
@@ -552,7 +538,7 @@ bool MessengerClient::validateConnectedServer(bool reverse) {
  }*/
 /*
  void MessengerClient::enterRoom(string roomName){
- this->closeActiveSession();
+ this->closeActiveGame();
  this->connectingRoomName = roomName;
  TCPMessanger::sendCommand(this->serverSocket, ENTER_ROOM);
  TCPMessanger::sendData(this->serverSocket, roomName);
@@ -605,7 +591,7 @@ bool MessengerClient::validateConnectedServer(bool reverse) {
  string MessengerClient::get_OpponentName() {
  return this->opponentName;
  }
- void MessengerClient::closeActiveSession(bool remote) {
+ void MessengerClient::closeActiveGame(bool remote) {
  this->connectingRoomName = "";
  this->connectingUserName = "";
 

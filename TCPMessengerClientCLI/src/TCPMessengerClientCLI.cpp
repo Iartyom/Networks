@@ -38,13 +38,13 @@ bool handleCommand(string command, MessengerClient* client) {
 		string ip;
 		cin >> ip;
 		/*if (client->validateConnectedServer(true))*/
-			client->connect(ip);
+		client->connect(ip);
 	} /*else if (command == "lu") {
 	 if (validateConnected(client))
 	 client->printAllUsers();
 	 }*/else if (command == "lcu") {
 		/*if (client->validateConnectedServer())*/
-			client->printConnectedUsers();
+		client->printConnectedUsers();
 	}/* else if (command == "lr") {
 	 if (validateConnected(client))
 	 client->printAllRooms();
@@ -60,7 +60,7 @@ bool handleCommand(string command, MessengerClient* client) {
 	} else if (command == "o") {
 		string userName;
 		cin >> userName;
-		if ( client->validateLoggedIn())
+		if (client->validateLoggedIn())
 			client->startGameRequest(userName);
 	}/* else if (command == "or") {
 	 string roomName;
@@ -77,15 +77,24 @@ bool handleCommand(string command, MessengerClient* client) {
 		client->printStatus();
 	} else if (command == "cs") {
 		if (client->validateActiveSession())
-			client->closeActiveSession();
+			client->closeActiveGame();
 	} else if (command == "d") {
-	/*	if (client->validateConnectedServer())*/
-			client->disconnect();
-	} else if (command == "x") {
-		client->closeActiveSession();
+		/*	if (client->validateConnectedServer())*/
 		client->disconnect();
+	} else if (command == "x") {
+		if (client->isActiveGame() != NULL) {
+			client->closeActiveGame();
+		}
+		if (client->isConnected() != NULL) {
+			client->disconnect();
+		}
 		delete client;
 		return false;
+	} else if ((command == "yes") && (client->getRequestedForGame()==true)) {
+		client->handleAccept();
+
+	} else if ((command == "no") && (client->getRequestedForGame()==true)) {
+		client->handleReject();
 	} else {
 		cout << "wrong input" << endl;
 		printInstructions();
@@ -101,8 +110,11 @@ int main() {
 	while (running) {
 		string msg;
 		string command;
+		if (client->isActiveGame()==false)
 		cin >> command;
+
 		running = handleCommand(command, client);
+
 	}
 	client->disconnect();
 	delete client;

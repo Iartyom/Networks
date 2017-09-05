@@ -7,25 +7,33 @@
 
 #include "User.h"
 namespace npl {
-User::User(string userName, string ip) {
+User::User(string userName, string ip,int port) {
 	this->userName = userName;
 	this->ip = ip;
-	this->port = MSNGR_CLIENT_PORT;
+	this->port = port;
+}
+void User::setPort(int p){
+	this->port = p;
 }
 User::User(string userName) {
 	this->userName = userName;
 	this->ip = "no ip";
-	this->port = MSNGR_CLIENT_PORT;
+	this->port = 0;
 }
 User::User() {
 	this->userName = "no name";
 	this->ip = "no ip";
-	this->port = MSNGR_CLIENT_PORT;
+	this->port = 0;
 }
 string User::getIP() {
 	return this->ip;
 }
-
+int User::getPort() {
+	return this->port;
+}
+int User::getListeningPort() {
+	return this->listening_port;
+}
 string User::getUserName() {
 	return this->userName;
 }
