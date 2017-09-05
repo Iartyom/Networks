@@ -163,7 +163,12 @@ bool UsersManager::login(string userName, string password)
 }
 
 void UsersManager::logout(User *user)
-{	
+{	try{
+		TCPMessengerProtocol::sendCommand(user->getSocket(), EXIT);
+	} catch(...){
+		
+	}
+	
 	Guard guard(&mutex);
 	vector<User *>::iterator it = this->loggedInUsers->begin();
 	for (; it != this->loggedInUsers->end(); ++it)

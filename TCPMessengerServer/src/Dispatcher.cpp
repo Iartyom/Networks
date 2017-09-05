@@ -267,7 +267,6 @@ void Dispatcher::disconnectUser(User* user){
 		}
 		user->setAvailable();
 	}
-	TCPMessengerProtocol::sendCommand(user->getSocket(), EXIT);
 
 	this->usersManager->logout(user);
 }
