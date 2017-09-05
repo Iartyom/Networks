@@ -15,8 +15,10 @@
 //#include "UDPSocket.h"
 #include "models/User.h"
 //#include "UDPMessenger.h"
-//#include "TCPMessengerProtocol.h"
+#include "TCPMessengerProtocol.h"
 #include "GameApp.h"
+#include "MultipleTCPSocketsListener.h"
+
 
 using namespace std;
 namespace npl {
@@ -25,6 +27,7 @@ class MessengerClient: public MThread {
 	TCPSocket* serverSocket ;
 	//UDPMessenger* udpMessenger;
 	User* currentUser; // the user object after login
+	TCPMessengerProtocol* msngrProtocol;
 	/*
 	 string connectingUserName;
 	 string connectingRoomName;
@@ -41,7 +44,7 @@ private:
 	vector<User*> getConnectedUsers();
 	GameApp *game;// = new GameApp;
 	User *opponent;// = new User;
-
+	Semaphore* lock;
 	static User* readUser(TCPSocket* sock) {
 		string userName = TCPMessengerProtocol::readData(sock);
 		string userIp = TCPMessengerProtocol::readData(sock);

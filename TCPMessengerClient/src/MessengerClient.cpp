@@ -15,6 +15,8 @@ MessengerClient::MessengerClient() {
 	/*this->connectingUserName = "";
 	 this->connectingRoomName = "";*/
 	this->isHandlingServerData = false;
+	this->lock = new Semaphore(1);
+	this->msngrProtocol = new TCPMessengerProtocol();
 	game = NULL;
 	opponent = NULL;
 	this->isRunning = false;
@@ -86,11 +88,11 @@ void MessengerClient::printStatus() {
 }
 
 void MessengerClient::registerUser(string userName, string password) {
-
+	this->isHandlingServerData = true;
 	TCPMessengerProtocol::sendCommand(this->serverSocket, REGISTER);
 	TCPMessengerProtocol::sendData(this->serverSocket, userName);
 	TCPMessengerProtocol::sendData(this->serverSocket, password);
-	this->isHandlingServerData = true;
+
 	//now we wait for the server to answer if the register succeeded
 	int command = TCPMessengerProtocol::readCommand(this->serverSocket);
 	if (command == REGISTER) {
@@ -116,21 +118,22 @@ void MessengerClient::connect(string ip) {
 }
 void MessengerClient::login(string userName, string password) {
 	this->isHandlingServerData = true;
+
 	TCPMessengerProtocol::sendCommand(this->serverSocket, LOGIN);
 	TCPMessengerProtocol::sendData(this->serverSocket, userName);
 	TCPMessengerProtocol::sendData(this->serverSocket, password);
+	int command = msngrProtocol->readCommand(this->serverSocket);
 	//this->isHandlingServerData = true;
 	//now we wait for the server to answer if the login succeeded
 	cout << "here 1 "<<this->serverSocket->socket()<<endl;
 
-	int command = TCPMessengerProtocol::readCommand(this->serverSocket);
 	cout << "here 2"<<endl;
 	if (command == LOGIN) {
 		this->currentUser = new User(userName); // the ip and port is not relevant for our user..
 		cout << "Login succeeded, you are now logged as: " << userName << " :) "
 				<< endl;
 	} else {
-		cout << "Login failed, please try again, your user name or password are incorrect" << endl;
+		cout << "are you in already? ;)	OR Login failed, please try again, your user name or password are incorrect" << endl;
 	}
 	this->isHandlingServerData = false;
 }
@@ -180,11 +183,12 @@ void MessengerClient::printConnectedUsers() {
 
 //game start
 void MessengerClient::startGameRequest(string user_target) {
+	this->isHandlingServerData = true;
 	TCPMessengerProtocol::sendCommand(this->serverSocket,
 	REQUEST_TO_START_GAME);
 	TCPMessengerProtocol::sendData(this->serverSocket, user_target);
 	//now we wait for the server to answer with game approval
-	this->isHandlingServerData = true;
+
 	int command = TCPMessengerProtocol::readCommand(this->serverSocket);
 	if (command == GAME_REQUEST_ACCEPTED) {
 		cout << "receiving opponent details." << endl;
@@ -242,12 +246,19 @@ void MessengerClient::closeActiveSession(bool remote) {
 
 void MessengerClient::run() {
 	this->isRunning = true;
-	while (this->isRunning) {
-		if (this->isHandlingServerData) {
+	while(this->isRunning){
+		if(this->isHandlingServerData){
 			sleep(1);
 			continue;
 		}
-
+		MultipleTCPSocketsListener* listener = new MultipleTCPSocketsListener();
+		listener->addSocket(this->serverSocket);
+		TCPSocket* readySocket = listener->listenToSocket();
+		listener->close();
+		delete listener;
+		if(readySocket == NULL || this->isHandlingServerData){
+			continue;
+		}
 		handle();
 	}
 }
@@ -262,7 +273,7 @@ void MessengerClient::handle() {
 
 	case REQUEST_TO_START_GAME: {
 		cout << "received open game request from: ";
-		listeningPort = TCPMessengerProtocol::readInt(this->serverSocket);
+	//	listeningPort = TCPMessengerProtocol::readInt(this->serverSocket);
 		string potencialOpponent = TCPMessengerProtocol::readData(
 				this->serverSocket);
 		//	user = this->readUser();
@@ -324,12 +335,7 @@ void MessengerClient::handle() {
 	}
 }
 
-/*
- Room* MessengerClient::readRoom(){
- string roomName = TCPMessanger::readData(this->serverSocket);
- return new Room(roomName);
- }
- */
+
 void MessengerClient::close() {
 	this->isRunning = false;
 	this->waitForThread();
@@ -338,6 +344,12 @@ void MessengerClient::close() {
 MessengerClient::~MessengerClient() {
 }
 }
+/*
+ Room* MessengerClient::readRoom(){
+ string roomName = TCPMessanger::readData(this->serverSocket);
+ return new Room(roomName);
+ }
+ */
 /*
  void MessengerClient::printAllRooms(){
  this->isHandlingServerData = true;
