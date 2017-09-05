@@ -33,7 +33,8 @@ class MessengerClient: public MThread {
 	 string connectingRoomName;
 	 */
 	bool isHandlingServerData;
-
+	bool requested_for_game;
+	string user_awnser;
 	bool isRunning;
 private:
 	User* readUser();
@@ -44,25 +45,30 @@ private:
 	vector<User*> getConnectedUsers();
 	GameApp *game;// = new GameApp;
 	User *opponent;// = new User;
-	Semaphore* lock;
+	string potencialOpponent;
+
 	static User* readUser(TCPSocket* sock) {
 		string userName = TCPMessengerProtocol::readData(sock);
 		string userIp = TCPMessengerProtocol::readData(sock);
-		return new User(userName, userIp);
+		int port = TCPMessengerProtocol::readInt(sock);
+		return new User(userName, userIp,port);
 	};
 
 //	void printUsers(vector<User*> users);
 public:
 	MessengerClient();
 	virtual ~MessengerClient();
-
+	void setUserAwnser(string s);
+	bool getRequestedForGame();
 	bool validateConnectedServer(bool reverse = false);
 	bool validateLoggedIn(bool reverse = false);
 	bool validateActiveSession();
 	void handleLogin();
 	void handleRegister();
+	void handleAccept();
+	void handleReject();
 	void printStatus();
-
+	void startGame();
 	bool isLoggedIn();
 	bool isConnected();
 	void login(string userName, string password);
@@ -71,8 +77,8 @@ public:
 	void disconnect();
 //	void connectUser(string userName);
 //	void enterRoom(string roomName);
-	void closeActiveSession(bool remote = false);
-	bool isActiveSession();
+	void closeActiveGame(bool remote = false);
+	bool isActiveGame();
 	bool isConnectedWithUser();
 //	bool isConnectedWithRoom();
 	User* getActiveSessionUser();

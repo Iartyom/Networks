@@ -9,22 +9,26 @@
 #define USERC_H_
 #include <string>
 //#include "TCPMessengerProtocol.h"
-#define MSNGR_CLIENT_PORT 10000
+
 using namespace std;
 namespace npl {
 class User {
 	string userName;
 	string ip;
 	int port;
+	int listening_port;
 
 public:
-	User(string userName, string ip);
+	User(string userName, string ip,int port);
 	User(string userName);
 	User();
 	virtual ~User();
 
 	string getUserName();
 	string getIP();
+	int getPort();
+	void setPort(int p);
+	int getListeningPort();
 };
 }
 #endif /* USERC_H_ */

@@ -23,7 +23,7 @@ void GameApp::PrintInstructions() {
 	cout << "the first one to miss a 'boom' loses " << endl;
 	console.setColor(COL_BLUE);
 	cout << "To send a message type: m <message>" << endl;
-	cout << "for the instructions type : i" << endl;
+	cout << "for the instructions type : in" << endl;
 	cout << "To exit type: e" << endl;
 	console.clearScreen();
 }
@@ -50,13 +50,14 @@ bool GameApp::numberBoom(int number) {
 	return false;
 }
 
-void GameApp::RunGame(string enemyIP) {
+void GameApp::RunGame(string enemyIP,int port,int listening_port) {
 	//weclome + instracts
 	this->ip=enemyIP;
 	bool should_boom = false;
 	cout << "Welcome to The Game 7 Boom messenger" << endl;
 	PrintInstructions();
-	UDPMessenger* messenger = new UDPMessenger();
+	UDPMessenger* messenger = new UDPMessenger(listening_port);
+	cout << "udp started" << endl;
 	//main game UDP loop
 	while (true) {
 		//get command
@@ -74,7 +75,7 @@ void GameApp::RunGame(string enemyIP) {
 			if (has_only_digits == false && msg.compare(boom) != 0) {
 				cout
 						<< "the message was sent but please enter youre number! \n";
-				messenger->sendTo(msg, ip);
+				messenger->sendTo(msg, ip,port);
 			} //its a part of the game , checks validation
 			else {
 				int num = atoi(msg.c_str());
@@ -90,22 +91,22 @@ void GameApp::RunGame(string enemyIP) {
 				} else if ((should_boom == true && msg.compare(boom) != 0)
 						|| (should_boom == false && msg.compare(boom) == 0)) {
 					console.setColor(COL_RED);
-					messenger->sendTo("BOOOOOOM!! you WIN i'm a loser \n", ip);
-					messenger->sendTo("GAME OVER \n", ip);
+					messenger->sendTo("BOOOOOOM!! you WIN i'm a loser \n", ip,port);
+					messenger->sendTo("GAME OVER \n", ip,port);
 					cout << "BOOOOOM!! damn i lost it \n";
 					cout << "GAME OVER \n";
 					console.clearScreen();
 					//break;
 					game_over = true;
 				} else {
-					messenger->sendTo("my number is:" + msg, ip);
+					messenger->sendTo("my number is:" + msg, ip,port);
 					next_number = next_number + 2;
 				}
 			}
 		} else if (command == "e") {
 			break;
 		}
-			 else if (command == "i") {
+			 else if (command == "in") {
 				 PrintInstructions();
 			 }
 		 else {

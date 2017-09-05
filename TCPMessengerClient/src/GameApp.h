@@ -33,7 +33,7 @@ public:
 	ConsoleLinux console;
 	GameApp();
 	void PrintInstructions();
-	void RunGame(string IP);
+	void RunGame(string IP,int port,int listening_port);
 	bool numberBoom(int number);
 	void signalHandler(int signum);
 	virtual ~GameApp();

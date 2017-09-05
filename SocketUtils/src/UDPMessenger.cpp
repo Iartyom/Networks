@@ -30,19 +30,19 @@ void UDPMessenger::run() {
 	cout << "closing receiver thread" << endl;
 }
 
-UDPMessenger::UDPMessenger() {
+UDPMessenger::UDPMessenger(int port) {
 	running = true;
 	connectedUser=false;
-	udpSocket = new UDPSocket(MSNGR_CLIENT_PORT);
+	udpSocket = new UDPSocket(port);
 	this->start();
 
 }
 bool UDPMessenger::isConnectedToUser(){
 	return this->connectedUser != NULL;
 }
-void UDPMessenger::sendTo(string msg, string ip) {
+void UDPMessenger::sendTo(string msg, string ip, int port) {
 	connectedUser=true;
-	udpSocket->sendTo(msg, ip, MSNGR_CLIENT_PORT);
+	udpSocket->sendTo(msg, ip, port);
 }
 
 void UDPMessenger::reply(string msg) {
