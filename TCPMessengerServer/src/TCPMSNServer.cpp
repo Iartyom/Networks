@@ -52,7 +52,14 @@ void TCPMSNServer::printConnectedUsers(){
 	//sem->lock();
 	vector<User*>::iterator it = users->begin();
 	for(;it != users->end(); ++it){
-		cout << (*it)->getUserName() << endl;
+		
+		string userStatus;
+		if((*it)->isBusy()){
+			userStatus="busy";
+		} else{
+			userStatus="free";
+		}
+		cout << (*it)->getUserName() << ", status: "<< userStatus<< endl;
 	}
 	//sem->unlock();
 }
