@@ -247,7 +247,8 @@ void Dispatcher::sendScoreboard(User* user){
 	TCPMessengerProtocol::sendCommand(userSocket, GET_SCOREBOARD);
 
 	vector<std::pair<string,int>> scoreboardVector = this->usersManager->getScoreboard();
-
+	TCPMessengerProtocol::sendInt(userSocket, scoreboardVector.size()); //users length
+	
 	vector<std::pair<string,int>>::iterator it = scoreboardVector.begin();
 	for(;it != scoreboardVector.end(); ++it){
 		TCPMessengerProtocol::sendData(userSocket, (*it).first); //user name
