@@ -24,7 +24,6 @@ void UDPMessenger::run() {
 			cout << "\nreceive msg from:" << udpSocket->fromAddr() << endl
 					<< ">\"" << buff << "\"" << endl;
 			if (strcmp(buff ,"end")==0) {
-			//	this->close();
 				this->handler->gameEnded();
 			}
 			//	this->SetNumber(s);                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          );

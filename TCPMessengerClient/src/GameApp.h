@@ -18,7 +18,7 @@
 using namespace npl;
 using namespace std;
 
-class GameApp: UDPMessengerGameHandler{
+class GameApp:public MThread ,UDPMessengerGameHandler {
 private:
 	bool game_over = false;
 	int next_number = 0;
@@ -30,10 +30,13 @@ private:
 	int cur_number;
 	UDPMessenger* messenger;
 	bool win ;
+	bool closing,should_boom;
+	int listeningPort,enemyPort;
 public:
 
 	ConsoleLinux console;
 	GameApp();
+	void run();
 	void PrintInstructions();
 	void RunGame(string IP,int port,int listening_port);
 	bool numberBoom(int number);
