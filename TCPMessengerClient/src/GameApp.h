@@ -32,6 +32,7 @@ private:
 	bool win ;
 	bool closing,should_boom;
 	int listeningPort,enemyPort;
+	bool running;
 public:
 
 	ConsoleLinux console;

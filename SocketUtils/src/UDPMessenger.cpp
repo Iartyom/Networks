@@ -30,7 +30,10 @@ void UDPMessenger::run() {
 		}
 	}
 	connectedUser = false;
+	udpSocket->close();
+	delete udpSocket;
 	cout << "closing receiver thread" << endl;
+	delete this;
 }
 
 UDPMessenger::UDPMessenger(int port, UDPMessengerGameHandler* handler) {
@@ -54,10 +57,6 @@ void UDPMessenger::reply(string msg) {
 }
 
 void UDPMessenger::close() {
-	connectedUser = false;
 	running = false;
-	udpSocket->close();
-	this->waitForThread();
-	delete udpSocket;
 }
 }

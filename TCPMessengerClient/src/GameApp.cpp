@@ -11,9 +11,10 @@ GameApp::GameApp() {
 	console = ConsoleLinux();
 	closing = false;
 	win = true;
+	running = false;
 }
 void GameApp::run(){
-	while (true) {
+	while (running) {
 			//get command
 		/*if (closing)
 			break;*/
@@ -127,6 +128,7 @@ void GameApp::RunGame(string enemyIP, int port, int listening_port) {
 	this->listeningPort=listening_port;
 	messenger = new UDPMessenger(listening_port, this);
 	cout << "udp started" << endl;
+	this->running = true;
 	this->start();
 	//main game UDP loop
 	/*while (true) {
@@ -208,10 +210,12 @@ bool GameApp::getWin() {
 void GameApp::closeGameMessanger() {
 	if (this->isInsideGame())
 		messenger->close();
-	delete messenger;
-	this->messenger = NULL;
+	//delete messenger;
 	cout << "Game was closed" << endl;
 	console.setColor(COL_NORMAL);
+	this->messenger = NULL;
+	this->running = false;
+	
 }
 
 void signalHandler(int signum) {
