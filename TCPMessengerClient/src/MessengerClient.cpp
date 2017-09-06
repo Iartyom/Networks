@@ -257,14 +257,17 @@ void MessengerClient::closeActiveGame(bool remote) {
 		delete this->game;
 		this->game = NULL;
 		if (remote) {
-			cout << "session closed by remote user" << endl;
+			cout << "game cancelled by remote user" << endl;
 		}
 	}
 }
 void MessengerClient::gameEnded() {
 	TCPMessengerProtocol::sendCommand(this->serverSocket,
 	GAME_ENDED);
-	if (game->getWin()) {
+	if(game->getCancelled()){
+		TCPMessengerProtocol::sendInt(this->serverSocket, CANCELLED);
+	}
+	else if (game->getWin()) {
 		TCPMessengerProtocol::sendInt(this->serverSocket, WIN);
 		TCPMessengerProtocol::sendInt(this->serverSocket, WIN_SCORE);
 	} else {
@@ -352,6 +355,7 @@ void MessengerClient::handle() {
 	}
 		break;
 	case GAME_ENDED: {
+		cout<<"game ended from server"<<endl;
 		this->closeActiveGame(true);
 	}
 		break;

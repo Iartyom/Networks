@@ -242,8 +242,16 @@ void Dispatcher::gameEnded(User* user){
 			
 			break;
 		case CANCELLED:
-		default:
-			cout <<"game cancelled: " << user->getUserName() << " -> " << user->getConnectedUser() << endl;
+		default:{
+			User* connectedUser = user->getConnectedUser();
+			if(connectedUser!=NULL){
+				TCPMessengerProtocol::sendCommand(connectedUser->getSocket(), GAME_ENDED);
+				cout <<"game cancelled: " << user->getUserName() << " -> " << connectedUser->getUserName() << endl;
+				connectedUser->setAvailable();
+			}
+
+		}
+
 		
 		
 	}

@@ -11,6 +11,7 @@ GameApp::GameApp() {
 	console = ConsoleLinux();
 	closing = false;
 	win = true;
+	cancelled = false;
 	running = false;
 }
 void GameApp::run(){
@@ -66,6 +67,7 @@ void GameApp::run(){
 					}
 				}
 			} else if (command == "e") {
+				cancelled = true;
 				closeGameMessanger();
 				break;
 			} else if (command == "in") {
@@ -206,6 +208,9 @@ bool GameApp::isInsideGame() {
 }
 bool GameApp::getWin() {
 	return win;
+}
+bool GameApp::getCancelled() {
+	return cancelled;
 }
 void GameApp::closeGameMessanger() {
 	if (this->isInsideGame())

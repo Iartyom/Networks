@@ -29,7 +29,8 @@ private:
 	string ip;
 	int cur_number;
 	UDPMessenger* messenger;
-	bool win ;
+	bool win;
+	bool cancelled;
 	bool closing,should_boom;
 	int listeningPort,enemyPort;
 	bool running;
@@ -49,6 +50,7 @@ public:
 	virtual void gameEnded();
 
 	bool getWin();
+	bool getCancelled();
 };
 
 #endif /* GAMEAPP_H_ */
