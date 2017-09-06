@@ -28,31 +28,39 @@ vector<TCPSocket*>* Dispatcher::getSockets(vector<User*>* users ){
 	return sockets;
 }
 
+vector<User*>* Dispatcher::getAvailableUsers(vector<User*>* users ){
+	vector<User*>* availableUsers = new vector<User*>();
+	vector<User*>::iterator it = users->begin();
+	for(; it != users->end(); ++it){
+		User* user = (*it);
+		if(!user->isBusy()){
+			availableUsers->push_back(user);
+		}
+	}
+	return availableUsers;
+}
+
 User* Dispatcher::getUserBySocket(vector<User*>* users, TCPSocket* sock){
 	
-	//sem->lock();
 	vector<User*>::iterator it = users->begin();
 	for(; it != users->end(); ++it){
 		User* user = (*it);
 		if(user->getSocket() == sock){
-			//sem->unlock();
 			return user;
 		}
 	}
-	//sem->unlock();
 	return NULL;
 }
 User* Dispatcher::getUserByUserName(vector<User*>* users, string userName){
-	//sem->lock();
+	
 	vector<User*>::iterator it = users->begin();
 	for(; it != users->end(); ++it){
 		User* user = (*it);
 		if(user->getUserName().compare(userName) == 0){
-			//sem->unlock();
+			
 			return user;
 		}
 	}
-	//sem->unlock();
 	return NULL;
 }
 
@@ -60,6 +68,7 @@ Dispatcher::Dispatcher(UsersManager* usersManager, DispatcherHandler* handler) {
 	this->handler = handler;
 	this->usersManager = usersManager;
 	this->isRunning = false;
+	srand(time(NULL));
 }
 
 void Dispatcher::userLoggedIn() {
@@ -78,7 +87,7 @@ void Dispatcher::run() {
 			break;
 		}
 		MTCPListener listener;
-		;
+		
 		vector<TCPSocket*>* userSockets = Dispatcher::getSockets(loggedUsers);
 		listener.add(*userSockets);
 		TCPSocket* userSocket = listener.listen(5);
@@ -101,6 +110,9 @@ void Dispatcher::handleUser(User* user){
 	switch(command){
 		case REQUEST_TO_START_GAME:
 			this->requestToStartGame(user);
+			break;
+		case REQUEST_TO_START_RANDOM_GAME:
+			this->requestToStartRandomGame(user);
 			break;
 		case GAME_REQUEST_REJECTED:
 			this->gameRequestRejected(user);
@@ -132,6 +144,10 @@ void Dispatcher::handleUser(User* user){
 //game handling
 void Dispatcher::requestToStartGame(User* user){
 	string targetUserName = TCPMessengerProtocol::readData(user->getSocket());
+	if(targetUserName == user->getUserName()){
+		TCPMessengerProtocol::sendCommand(user->getSocket(), SESSION_REFUSED);
+		return;
+	}
 	User* targetUser = Dispatcher::getUserByUserName(usersManager->getLoggedInUsers(),targetUserName);
 	if(targetUser == NULL || targetUser->isBusy()){
 		cout << targetUserName << " - no available user found" << endl;
@@ -142,7 +158,23 @@ void Dispatcher::requestToStartGame(User* user){
 	TCPMessengerProtocol::sendCommand(targetUser->getSocket(), REQUEST_TO_START_GAME);
 	TCPMessengerProtocol::sendData(targetUser->getSocket(), user->getUserName());
 }
+void Dispatcher::requestToStartRandomGame(User* user){
+	vector<User*>* availableUsers = Dispatcher::getAvailableUsers(usersManager->getLoggedInUsers());
+	if(availableUsers->size()>1){
+		User* randomUser;
+		do{
+			randomUser = availableUsers->at(rand() % (availableUsers->size()));
+		} while(user->getUserName().compare(randomUser->getUserName())==0);
 
+		cout <<"request to start random new game: " << user->getUserName() << " -> " << randomUser->getUserName() << endl;
+		TCPMessengerProtocol::sendCommand(randomUser->getSocket(), REQUEST_TO_START_GAME);
+		TCPMessengerProtocol::sendData(randomUser->getSocket(), user->getUserName());
+	} else {
+		cout <<"no online users for request random new game from: " << user->getUserName() << endl;
+		TCPMessengerProtocol::sendCommand(user->getSocket(), SESSION_REFUSED);
+	}
+}
+	
 void Dispatcher::gameRequestRejected(User* requestedUser){
 	string requestingUserName = TCPMessengerProtocol::readData(requestedUser->getSocket());
 	User* requestingUser = Dispatcher::getUserByUserName(usersManager->getLoggedInUsers(),requestingUserName);
@@ -161,7 +193,7 @@ void Dispatcher::gameRequestAccepted(User* requestedUser){
 
 void Dispatcher::startGameWithUser(User* sourceUser, User* targetUser){
 	cout <<"starting game between : " << sourceUser->getUserName() << "-> " << targetUser->getUserName() << endl;
-	srand(time(NULL));
+	
 	int sourceUDPPort = rand() % 1000 + MSNGR_CLIENT_PORT;
 	int targetUDPPort;
 	do{
@@ -193,13 +225,13 @@ void Dispatcher::gameEnded(User* user){
 			//updating users score
 			score = TCPMessengerProtocol::readInt(user->getSocket());
 			this->usersManager->addScore(user, score);
-			cout <<"game ended: " << user->getUserName() << " win -> " << user->getConnectedUser() << endl;
+			cout <<"game ended: " << user->getUserName() << " win -> " << user->getConnectedUser()->getUserName() << endl;
 			
 			break;
 		case LOSE:
 			score = TCPMessengerProtocol::readInt(user->getSocket());
 			this->usersManager->addScore(user, score);
-			cout <<"game ended: " << user->getUserName() << " lost -> " << user->getConnectedUser() << endl;
+			cout <<"game ended: " << user->getUserName() << " lost -> " << user->getConnectedUser()->getUserName() << endl;
 		
 			break;
 		
@@ -225,7 +257,7 @@ void Dispatcher::gameEnded(User* user){
 void Dispatcher::sendOnlineUsers(User* user){
 	TCPSocket* userSocket = user->getSocket();
 	vector<User*>* users = this->usersManager->getLoggedInUsers();
-	//sem->lock();
+	
 	TCPMessengerProtocol::sendCommand(userSocket, GET_ONLINE_USERS_LIST);
 	TCPMessengerProtocol::sendInt(userSocket, users->size());
 	vector<User*>::iterator it = users->begin();
@@ -239,7 +271,6 @@ void Dispatcher::sendOnlineUsers(User* user){
 		TCPMessengerProtocol::sendData(userSocket, (*it)->getUserName());
 		TCPMessengerProtocol::sendData(userSocket, userStatus);
 	}
-	//sem->unlock();
 }
 
 void Dispatcher::sendScoreboard(User* user){

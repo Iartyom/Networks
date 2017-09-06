@@ -25,7 +25,7 @@ void printInstructions() {
 	cout << "random - open a random game" << endl;
 	/*	cout << "s <message> - send a message" << endl;*/
 	cout << "stat - print the current status of the client" << endl;
-	cout << "score - disconnect the open game " << endl;
+	cout << "scoreboard - print scoreboard " << endl;
 //	cout << "cs - disconnect the open game " << endl;
 	cout << "d - disconnect from server" << endl;
 	cout << "x - close the app" << endl;
@@ -61,16 +61,14 @@ bool handleCommand(string command, MessengerClient* client) {
 		if (client->validateLoggedIn())
 			client->startGameRequest(userName);
 	} else if (command == "random") {
-		string userName;
-		cin >> userName;
 		if (client->validateLoggedIn())
-			client->startGameRequest(userName);
+			client->startRandomGame();
 	} else if (command == "stat") {
 		client->printStatus();
 	} else if (command == "cs") {
 		if (client->isActiveGame())
 			client->closeActiveGame();
-	} else if (command == "score") {
+	} else if (command == "scoreboard") {
 		client->handleScore();
 	} else if (command == "d") {
 		/*	if (client->validateConnectedServer())*/

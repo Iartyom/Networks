@@ -202,7 +202,7 @@ void GameApp::gameEnded(){
 }
 
 bool GameApp::isInsideGame() {
-	return this->messenger != NULL;
+	return running;
 }
 bool GameApp::getWin() {
 	return win;
@@ -213,7 +213,7 @@ void GameApp::closeGameMessanger() {
 	//delete messenger;
 	cout << "Game was closed" << endl;
 	console.setColor(COL_NORMAL);
-	this->messenger = NULL;
+	//this->messenger = NULL;
 	this->running = false;
 	
 }
@@ -228,6 +228,11 @@ void signalHandler(int signum) {
 }
 
 GameApp::~GameApp() {
+	if(messenger!=NULL){
+		delete messenger;
+		messenger = NULL;
+
+	}
 // TODO Auto-generated destructor stub
 }
 

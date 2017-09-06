@@ -33,9 +33,10 @@ class Dispatcher : public MThread {
 	bool isRunning;
 private:
 	static vector<TCPSocket*>* getSockets(vector<User*>* users );
+	static vector<User*>* getAvailableUsers(vector<User*>* users );
 	static User* getUserBySocket(vector<User*>* users, TCPSocket* sock);
 	static User* getUserByUserName(vector<User*>* users, string userName);
-
+	
 	static void sendUser(TCPSocket* sock, User* user){
 		TCPMessengerProtocol::sendData(sock, user->getUserName());
 		TCPMessengerProtocol::sendData(sock, user->getIP());
@@ -47,6 +48,7 @@ private:
 	void disconnectUser(User* user);
 	//game handling
 	void requestToStartGame(User* user);
+	void requestToStartRandomGame(User* user);
 	void gameRequestRejected(User* requestedUser);
 	void gameRequestAccepted(User* requestedUser);
 	void startGameWithUser(User* sourceUser, User* targetUser);

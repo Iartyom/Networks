@@ -155,7 +155,7 @@ void MessengerClient::printStatus() {
 			}
 		}
 	}
-	cout << status;
+	cout << status<<endl;
 }
 User* MessengerClient::getCurrentUser() {
 	return this->currentUser;
@@ -168,9 +168,9 @@ void MessengerClient::handleScore() {
 	if (command == GET_SCOREBOARD) {
 		int scoreLength = TCPMessengerProtocol::readInt(this->serverSocket);
 		for (int i = 0; i < scoreLength; i++) {
-			cout << "User name : "
+			cout << "User name: "
 					<< TCPMessengerProtocol::readData(this->serverSocket);
-			cout << " Score : "
+			cout << ", Score: "
 					<< TCPMessengerProtocol::readInt(this->serverSocket)
 					<< endl;
 		}
@@ -212,6 +212,10 @@ bool MessengerClient::isActiveGame() {
 // ----------------------------------------------- game stuff----------------------------
 //game start
 void MessengerClient::startGameRequest(string user_target) {
+	if(user_target==currentUser->getUserName()){
+		cout<<"you can't game with yourself man"<<endl;
+		return;
+	}
 	this->isHandlingServerData = true;
 	TCPMessengerProtocol::sendCommand(this->serverSocket,
 	REQUEST_TO_START_GAME);
@@ -220,6 +224,7 @@ void MessengerClient::startGameRequest(string user_target) {
 	this->isHandlingServerData = false;
 }
 void MessengerClient::startRandomGame() {
+	cout<<"start random game"<<endl;
 	this->isHandlingServerData = true;
 	TCPMessengerProtocol::sendCommand(this->serverSocket,
 			REQUEST_TO_START_RANDOM_GAME);
@@ -303,11 +308,9 @@ void MessengerClient::run() {
 			sleep(1);
 			continue;
 		}
-		MultipleTCPSocketsListener* listener = new MultipleTCPSocketsListener();
-		listener->addSocket(this->serverSocket);
-		TCPSocket* readySocket = listener->listenToSocket();
-		listener->close();
-		delete listener;
+		MTCPListener listener;
+		listener.add(this->serverSocket);
+		TCPSocket* readySocket = listener.listen(2);
 		if (readySocket == NULL || this->isHandlingServerData) {
 			continue;
 		}
@@ -345,14 +348,17 @@ void MessengerClient::handle() {
 		cout
 				<< "receiving opponent refusal , i think he hates you, or he's just busy"
 				<< endl;
-		this->startGame();
+		//this->startGame();
 	}
 		break;
-	case GAME_CANCEL: {
+	case GAME_ENDED: {
 		this->closeActiveGame(true);
 	}
 		break;
-
+	case SESSION_REFUSED:{
+		cout << "the user you requested is not online or there are not online users at all"<<endl;
+		break;
+	}
 	case EXIT: {
 		cout << "disconnect from the server by remote command" << endl;
 		this->disconnect();
