@@ -25,8 +25,7 @@ void UDPMessenger::run() {
 					<< ">\"" << buff << "\"" << endl;
 			if (strcmp(buff ,"end")==0) {
 			//	this->close();
-
-				needToClose= true;
+				this->handler->gameEnded();
 			}
 			//	this->SetNumber(s);                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          );
 		}
@@ -35,11 +34,11 @@ void UDPMessenger::run() {
 	cout << "closing receiver thread" << endl;
 }
 
-UDPMessenger::UDPMessenger(int port) {
+UDPMessenger::UDPMessenger(int port, UDPMessengerGameHandler* handler) {
 	running = true;
 	connectedUser = false;
 	udpSocket = new UDPSocket(port);
-	needToClose= false;
+	this->handler = handler;
 	this->start();
 
 }

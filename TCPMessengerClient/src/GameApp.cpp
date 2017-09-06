@@ -57,19 +57,13 @@ void GameApp::RunGame(string enemyIP, int port, int listening_port) {
 	bool should_boom = false;
 	cout << "Welcome to The Game 7 Boom messenger" << endl;
 	PrintInstructions();
-	messenger = new UDPMessenger(listening_port);
+	messenger = new UDPMessenger(listening_port, this);
 	cout << "udp started" << endl;
 	//main game UDP loop
 	while (true) {
 		//get command
 
-		if (this->messenger->needToClose) {
-			closeGameMessanger();
-		}
 		cin >> command;
-		if (this->messenger->needToClose) {
-			closeGameMessanger();
-		}
 		if (command == "m") {
 			//cin >> ip;
 			getline(std::cin, msg);
@@ -130,6 +124,11 @@ void GameApp::RunGame(string enemyIP, int port, int listening_port) {
 	//delete messenger;
 	cout << "messenger was closed" << endl;
 }
+
+void GameApp::gameEnded(){
+	closeGameMessanger();
+}
+
 bool GameApp::isInsideGame() {
 	return this->messenger != NULL;
 }

@@ -17,6 +17,11 @@
 
 using namespace std;
 namespace npl{
+class UDPMessengerGameHandler {
+public:
+	virtual void gameEnded()=0;
+	virtual ~UDPMessengerGameHandler(){};
+};
 
 class UDPMessenger: public MThread {
 	//TODO: declare the class properties
@@ -24,10 +29,10 @@ class UDPMessenger: public MThread {
 	bool running;
 	bool connectedUser;
 	string number;
+	UDPMessengerGameHandler* handler;
 
 public:
 	bool isConnectedToUser();
-	bool needToClose ;
 	void SetNumber(string s) {
 		this->number = s;
 	}
@@ -37,7 +42,7 @@ public:
 		return this->number;
 	}
 	;
-	UDPMessenger(int port);
+	UDPMessenger(int port, UDPMessengerGameHandler* handler);
 	/**
 	 * sends the given message to the given peer specified by IP
 	 */

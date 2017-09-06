@@ -18,7 +18,7 @@
 using namespace npl;
 using namespace std;
 
-class GameApp {
+class GameApp: UDPMessengerGameHandler{
 private:
 	bool game_over = false;
 	int next_number = 0;
@@ -41,6 +41,8 @@ public:
 	virtual ~GameApp();
 	bool isInsideGame();
 	void closeGameMessanger();
+	
+	virtual void gameEnded();
 
 	bool getWin();
 };
