@@ -22,6 +22,7 @@ MessengerClient::MessengerClient() {
 	game = NULL;
 	opponent = NULL;
 	this->isRunning = false;
+	pendingRequest=false;
 }
 // ----------------------------------------------- handle from outside + checks----------------------------
 void MessengerClient::handleLogin() {
@@ -155,7 +156,7 @@ void MessengerClient::printStatus() {
 			}
 		}
 	}
-	cout << status<<endl;
+	cout << status << endl;
 }
 User* MessengerClient::getCurrentUser() {
 	return this->currentUser;
@@ -212,8 +213,8 @@ bool MessengerClient::isActiveGame() {
 // ----------------------------------------------- game stuff----------------------------
 //game start
 void MessengerClient::startGameRequest(string user_target) {
-	if(user_target==currentUser->getUserName()){
-		cout<<"you can't game with yourself man"<<endl;
+	if (user_target == currentUser->getUserName()) {
+		cout << "you can't game with yourself man" << endl;
 		return;
 	}
 	this->isHandlingServerData = true;
@@ -221,23 +222,26 @@ void MessengerClient::startGameRequest(string user_target) {
 	REQUEST_TO_START_GAME);
 	TCPMessengerProtocol::sendData(this->serverSocket, user_target);
 	//now we wait for the server to answer with game approval
+	pendingRequest=true;
 	this->isHandlingServerData = false;
 }
 void MessengerClient::startRandomGame() {
-	cout<<"start random game"<<endl;
+	cout << "start random game" << endl;
 	this->isHandlingServerData = true;
 	TCPMessengerProtocol::sendCommand(this->serverSocket,
-			REQUEST_TO_START_RANDOM_GAME);
+	REQUEST_TO_START_RANDOM_GAME);
+	pendingRequest=true;
 	this->isHandlingServerData = false;
 }
 void MessengerClient::startGame() {
 	cout << "starting game function" << endl;
 	this->isHandlingServerData = true;
-	this->game = new GameApp();
+
 	currentUser->setPort(TCPMessengerProtocol::readInt(this->serverSocket));
 	opponent = MessengerClient::readUser(this->serverSocket);
 	cout << "opening game by remote request with: " << opponent->getUserName()
 			<< endl;
+	this->game = new GameApp();
 	game->RunGame(opponent->getIP(), opponent->getPort(),
 			currentUser->getPort());
 	this->isHandlingServerData = false;
@@ -254,20 +258,20 @@ bool MessengerClient::GameMassengerActive() {
 }
 void MessengerClient::closeActiveGame(bool remote) {
 	if (this->game != NULL) {
+		//game->gameEnded();
 		delete this->game;
 		this->game = NULL;
 		if (remote) {
-			cout << "game cancelled by remote user" << endl;
+			cout << "game cancelled by remote user - 'menu' to see menu" << endl;
 		}
 	}
 }
 void MessengerClient::gameEnded() {
 	TCPMessengerProtocol::sendCommand(this->serverSocket,
 	GAME_ENDED);
-	if(game->getCancelled()){
+	if (game->getCancelled()) {
 		TCPMessengerProtocol::sendInt(this->serverSocket, CANCELLED);
-	}
-	else if (game->getWin()) {
+	} else if (game->getWin()) {
 		TCPMessengerProtocol::sendInt(this->serverSocket, WIN);
 		TCPMessengerProtocol::sendInt(this->serverSocket, WIN_SCORE);
 	} else {
@@ -344,10 +348,12 @@ void MessengerClient::handle() {
 		break;
 	case START_GAME: {
 		cout << "!start game!" << endl;
+		pendingRequest = false;
 		this->startGame();
 	}
 		break;
 	case GAME_REQUEST_REJECTED: {
+		pendingRequest=false;
 		cout
 				<< "receiving opponent refusal , i think he hates you, or he's just busy"
 				<< endl;
@@ -355,12 +361,15 @@ void MessengerClient::handle() {
 	}
 		break;
 	case GAME_ENDED: {
-		cout<<"game ended from server"<<endl;
+		cout << "game ended from server" << endl;
 		this->closeActiveGame(true);
 	}
 		break;
-	case SESSION_REFUSED:{
-		cout << "the user you requested is not online or there are not online users at all"<<endl;
+	case SESSION_REFUSED: {
+		pendingRequest=false;
+		cout
+				<< "the user you requested is not online or there are not online users at all"
+				<< endl;
 		break;
 	}
 	case EXIT: {

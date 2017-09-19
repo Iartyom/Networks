@@ -13,7 +13,6 @@
 #include <csignal>
 #include <stdlib.h>
 #include <pthread.h>
-
 #include "ConsoleLinux.h"
 using namespace npl;
 using namespace std;
@@ -35,7 +34,7 @@ private:
 	int listeningPort,enemyPort;
 	bool running;
 public:
-
+	bool pendingRequest;
 	ConsoleLinux console;
 	GameApp();
 	void run();
@@ -51,6 +50,7 @@ public:
 
 	bool getWin();
 	bool getCancelled();
+	void setCancelled(bool flag);
 };
 
 #endif /* GAMEAPP_H_ */

@@ -11,10 +11,11 @@
 
 using namespace npl;
 using namespace std;
-
+bool firstCinAfterGame = false;
 void printInstructions() {
+	cout << " menu - to remember the menu" << endl;
 	cout << "c <IP> - connect to the server in the given ip" << endl;
-	//cout << "lu - print the user list from the server" << endl;
+
 	cout << "lcu - print the connected users list" << endl;
 
 	cout << "login <user> <password> - login with the user and password"
@@ -23,10 +24,10 @@ void printInstructions() {
 			<< endl;
 	cout << "game <username> - open a game with the user" << endl;
 	cout << "random - open a random game" << endl;
-	/*	cout << "s <message> - send a message" << endl;*/
+
 	cout << "stat - print the current status of the client" << endl;
 	cout << "scoreboard - print scoreboard " << endl;
-//	cout << "cs - disconnect the open game " << endl;
+
 	cout << "d - disconnect from server" << endl;
 	cout << "x - close the app" << endl;
 }
@@ -35,27 +36,19 @@ bool handleCommand(string command, MessengerClient* client) {
 	if (command == "c") {
 		string ip;
 		cin >> ip;
-		/*if (client->validateConnectedServer(true))*/
+
 		client->connect(ip);
-	} /*else if (command == "lu") {
-	 if (validateConnected(client))
-	 client->printAllUsers();
-	 }*/else if (command == "lcu") {
-		/*if (client->validateConnectedServer())*/
+	} else if (command == "lcu") {
+
 		client->printConnectedUsers();
-	}/* else if (command == "lr") {
-	 if (validateConnected(client))
-	 client->printAllRooms();
-	 } else if (command == "lru") {
-	 string roomName;
-	 cin >> roomName;
-	 if (validateConnected(client))
-	 client->printRoomUsers(roomName);
-	 }*/else if (command == "login") {
+	} else if (command == "menu") {
+		printInstructions();
+	} else if (command == "login") {
 		client->handleLogin();
 	} else if (command == "register") {
 		client->handleRegister();
 	} else if (command == "game") {
+		firstCinAfterGame = true;
 		string userName;
 		cin >> userName;
 		if (client->validateLoggedIn())
@@ -83,7 +76,9 @@ bool handleCommand(string command, MessengerClient* client) {
 		delete client;
 		return false;
 	} else if ((command == "yes") && (client->getRequestedForGame() == true)) {
+		firstCinAfterGame = true;
 		client->handleAccept();
+
 
 	} else if ((command == "no") && (client->getRequestedForGame() == true)) {
 		client->handleReject();
@@ -95,68 +90,42 @@ bool handleCommand(string command, MessengerClient* client) {
 }
 
 int main() {
+	string command;
+
 	cout << "Welcome to client" << endl;
 	printInstructions();
 	MessengerClient* client = new MessengerClient();
 	bool running = true;
+
 	while (running) {
 		//string msg;
-
 		if (client->isActiveGame()
 				&& (client->GameMassengerActive() == false)) {
 			client->gameEnded();
 			printInstructions();
+
 		} else if (client->isActiveGame()) {
 			sleep(1);
 			continue;
-		} else {
-			string command;
-			cin >> command;
-			running = handleCommand(command, client);
 		}
+		else if(client->pendingRequest){
+			sleep(1);
+			continue;
+		} else {
+
+			if (!firstCinAfterGame) {
+				cout<<"waiting for command"<<endl;
+
+				cin >> command;
+				running = handleCommand(command, client);
+			} else{
+				firstCinAfterGame = false;
+			}
+		}
+
 	}
 	client->disconnect();
 	delete client;
 	cout << "client was closed" << endl;
 	return 0;
 }
-/*
- int main() {
- cout << __cplusplus << endl;
- cout << "Welcome to TCP Messenger Client" << endl;
- printInstructions();
- TCPMessengerClient* client = new TCPMessengerClient();
- bool isRunning = true;
- // read user input and act accordingly
- while (isRunning) {
- string instruction;
- string param;
- cin >> instruction;
- if (instruction == "x") {
- isRunning = false;
- } else if (instruction == "c") {
- cin >> param;
- client->connect(param);
- } else if (instruction == "o") {
- cin >> param;
- client->openSession(param);
- } else if (instruction == "cs") {
- client->closeSession();
- } else if (instruction == "d") {
- client->disconnect();
- } else if (instruction == "s") {
- cin >> param;
- client->sendMessage(param);
- } else {
-
-
- cout << "invalid instruction" << endl;
- }
- }
-
- // when done, close and delete all objects
- client->disconnect();
- delete client;
- cout << "client closed" << endl;
- }*/
-

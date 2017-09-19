@@ -49,7 +49,7 @@ void TCPMSNServer::printConnectedUsers(){
 	cout << "Connected Users: " << endl;
 
 	vector<User*>* users = this->usersManager->getLoggedInUsers();
-	//sem->lock();
+
 	vector<User*>::iterator it = users->begin();
 	for(;it != users->end(); ++it){
 		
@@ -61,7 +61,7 @@ void TCPMSNServer::printConnectedUsers(){
 		}
 		cout << (*it)->getUserName() << ", status: "<< userStatus<< endl;
 	}
-	//sem->unlock();
+
 }
 void TCPMSNServer::printScoreboard(){
 	int counter = 0;
@@ -73,7 +73,6 @@ void TCPMSNServer::printScoreboard(){
 
 		cout <<++counter<< "Name: " <<(*it).first <<", Score: "<< (*it).second<< endl;
 	}
-	//sem->unlock();
 }
 void TCPMSNServer::exit() {
 	this->server->close();

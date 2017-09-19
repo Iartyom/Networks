@@ -13,73 +13,75 @@ GameApp::GameApp() {
 	win = true;
 	cancelled = false;
 	running = false;
-}
-void GameApp::run(){
-	while (running) {
-			//get command
-		/*if (closing)
-			break;*/
-			cin >> command;
-			if (command == "m") {
-				//cin >> ip;
-				getline(std::cin, msg);
 
-				if (msg.size() > 0 && msg[0] == ' ')
-					msg.erase(0, 1);
-				//checks if the msg has digits or its not a legit game msg
-				bool has_only_digits = (msg.find_first_not_of("0123456789")
-						== string::npos);
-				if (has_only_digits == false && msg.compare(boom) != 0) {
-					cout
-							<< "the message was sent but please enter youre number! \n";
-					messenger->sendTo(msg, ip, enemyPort);
-				} //its a part of the game , checks validation
-				else {
+}
+void GameApp::run() {
+	while (running) {
+		//get command
+		/*if (closing)
+		 break;*/
+		cin >> command;
+		if (command == "m") {
+			//cin >> ip;
+			getline(std::cin, msg);
+
+			if (msg.size() > 0 && msg[0] == ' ')
+				msg.erase(0, 1);
+			//checks if the msg has digits or its not a legit game msg
+			bool has_only_digits = (msg.find_first_not_of("0123456789")
+					== string::npos);
+			if (has_only_digits == false && msg.compare(boom) != 0) {
+				cout
+						<< "the message was sent but please enter youre number! \n";
+				messenger->sendTo(msg, ip, enemyPort);
+			} //its a part of the game , checks validation
+			else {
+				int num = atoi(msg.c_str());
+				cur_number = num;
+				if (first_number == false) {
 					int num = atoi(msg.c_str());
-					cur_number = num;
-					if (first_number == false) {
-						int num = atoi(msg.c_str());
-						first_number = true;
-						next_number = num;
-					}
-					should_boom = numberBoom(next_number);
-					if (cur_number != next_number && msg.compare(boom) != 0) {
-						cout << "wrong number, send the number in order \n";
-					} else if ((should_boom == true && msg.compare(boom) != 0)
-							|| (should_boom == false && msg.compare(boom) == 0)) {
-						console.setColor(COL_RED);
-						messenger->sendTo("BOOOOOOM!! you WIN i'm a loser \n", ip,
-								enemyPort);
-						messenger->sendTo("GAME OVER", ip, enemyPort);
-						messenger->sendTo("end", ip, enemyPort);
-						win = false;
-						cout << "BOOOOOM!! damn i lost it \n";
-						cout << "GAME OVER\n";
-						cout << "Game was closed" << endl;
-						//	console.clearScreen();
-						//break;
-						game_over = true;
-						closeGameMessanger();
-						break;
-					} else {
-						messenger->sendTo("my number is:" + msg, ip, enemyPort);
-						next_number = next_number + 2;
-					}
+					first_number = true;
+					next_number = num;
 				}
-			} else if (command == "e") {
-				cancelled = true;
-				closeGameMessanger();
-				break;
-			} else if (command == "in") {
-				PrintInstructions();
-			} else {
-				cout << "wrong input" << endl;
-				PrintInstructions();
+				should_boom = numberBoom(next_number);
+				if (cur_number != next_number && msg.compare(boom) != 0) {
+					cout << "wrong number, send the number in order \n";
+				} else if ((should_boom == true && msg.compare(boom) != 0)
+						|| (should_boom == false && msg.compare(boom) == 0)) {
+					console.setColor(COL_RED);
+					messenger->sendTo("BOOOOOOM!! you WIN i'm a loser \n", ip,
+							enemyPort);
+					messenger->sendTo("GAME OVER", ip, enemyPort);
+					messenger->sendTo("end", ip, enemyPort);
+					win = false;
+					cout << "BOOOOOM!! damn i lost it \n";
+					cout << "GAME OVER\n";
+					cout << "Game was closed" << endl;
+					//	console.clearScreen();
+					//break;
+					game_over = true;
+					closeGameMessanger();
+					break;
+				} else {
+					messenger->sendTo("my number is:" + msg, ip, enemyPort);
+					next_number = next_number + 2;
+				}
 			}
+		} else if (command == "e") {
+			cancelled = true;
+			console.setColor(COL_NORMAL);
+			closeGameMessanger();
+			break;
+		} else if (command == "in") {
+			PrintInstructions();
+		} else {
+			cout << "wrong input" << endl;
+			PrintInstructions();
 		}
-		//messenger->close();
-		//delete messenger;
-		cout << "messenger was closed" << endl;
+	}
+	//messenger->close();
+	//delete messenger;
+	cout << "messenger was closed" << endl;
 }
 void GameApp::PrintInstructions() {
 
@@ -124,80 +126,18 @@ void GameApp::RunGame(string enemyIP, int port, int listening_port) {
 	//weclome + instracts
 	this->ip = enemyIP;
 	should_boom = false;
+	messenger = new UDPMessenger(listening_port, this);
 	cout << "Welcome to The Game 7 Boom messenger" << endl;
 	PrintInstructions();
-	this->enemyPort= port;
-	this->listeningPort=listening_port;
-	messenger = new UDPMessenger(listening_port, this);
+	this->enemyPort = port;
+	this->listeningPort = listening_port;
 	cout << "udp started" << endl;
 	this->running = true;
 	this->start();
-	//main game UDP loop
-	/*while (true) {
-		//get command
-		cin >> command;
-		if (command == "m") {
-			//cin >> ip;
-			getline(std::cin, msg);
 
-			if (msg.size() > 0 && msg[0] == ' ')
-				msg.erase(0, 1);
-			//checks if the msg has digits or its not a legit game msg
-			bool has_only_digits = (msg.find_first_not_of("0123456789")
-					== string::npos);
-			if (has_only_digits == false && msg.compare(boom) != 0) {
-				cout
-						<< "the message was sent but please enter youre number! \n";
-				messenger->sendTo(msg, ip, port);
-			} //its a part of the game , checks validation
-			else {
-				int num = atoi(msg.c_str());
-				cur_number = num;
-				if (first_number == false) {
-					int num = atoi(msg.c_str());
-					first_number = true;
-					next_number = num;
-				}
-				should_boom = numberBoom(next_number);
-				if (cur_number != next_number && msg.compare(boom) != 0) {
-					cout << "wrong number, send the number in order \n";
-				} else if ((should_boom == true && msg.compare(boom) != 0)
-						|| (should_boom == false && msg.compare(boom) == 0)) {
-					console.setColor(COL_RED);
-					messenger->sendTo("BOOOOOOM!! you WIN i'm a loser \n", ip,
-							port);
-					messenger->sendTo("GAME OVER", ip, port);
-					messenger->sendTo("end", ip, port);
-					win = false;
-					cout << "BOOOOOM!! damn i lost it \n";
-					cout << "GAME OVER\n";
-					cout << "Game was closed" << endl;
-					//	console.clearScreen();
-					//break;
-					game_over = true;
-					closeGameMessanger();
-					break;
-				} else {
-					messenger->sendTo("my number is:" + msg, ip, port);
-					next_number = next_number + 2;
-				}
-			}
-		} else if (command == "e") {
-			closeGameMessanger();
-			break;
-		} else if (command == "in") {
-			PrintInstructions();
-		} else {
-			cout << "wrong input" << endl;
-			PrintInstructions();
-		}
-	}
-	//messenger->close();
-	//delete messenger;
-	cout << "messenger was closed" << endl;*/
 }
 
-void GameApp::gameEnded(){
+void GameApp::gameEnded() {
 	//this->~MThread();
 	//this->closing= true;
 	closeGameMessanger();
@@ -212,6 +152,9 @@ bool GameApp::getWin() {
 bool GameApp::getCancelled() {
 	return cancelled;
 }
+void GameApp::setCancelled(bool flag) {
+	this->cancelled = flag;
+}
 void GameApp::closeGameMessanger() {
 	if (this->isInsideGame())
 		messenger->close();
@@ -220,7 +163,7 @@ void GameApp::closeGameMessanger() {
 	console.setColor(COL_NORMAL);
 	//this->messenger = NULL;
 	this->running = false;
-	
+
 }
 
 void signalHandler(int signum) {
@@ -233,8 +176,9 @@ void signalHandler(int signum) {
 }
 
 GameApp::~GameApp() {
-	if(messenger!=NULL){
+	if (messenger != NULL) {
 		delete messenger;
+		console.setColor(COL_NORMAL);
 		messenger = NULL;
 
 	}

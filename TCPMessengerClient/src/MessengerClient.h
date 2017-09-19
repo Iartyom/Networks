@@ -56,6 +56,7 @@ private:
 
 //	void printUsers(vector<User*> users);
 public:
+	bool pendingRequest;
 	MessengerClient();
 	virtual ~MessengerClient();
 	void setUserAwnser(string s);

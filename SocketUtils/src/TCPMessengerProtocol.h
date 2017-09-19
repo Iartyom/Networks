@@ -56,7 +56,7 @@ namespace npl{
 class TCPMessengerProtocol{
 public:
 	static void sendCommand(TCPSocket* peer, int command){
-		cout << "sending command " <<command << endl;
+		//cout << "sending command " <<command << endl;
 		int commandNumber = htonl(command);
 		peer->send((char*)&commandNumber,4);
 	}
@@ -73,7 +73,7 @@ public:
 	}
 
 	static int readCommand(TCPSocket* peer){
-		cout << "reading command ";
+		//cout << "reading command ";
 
 		int commandType;
 		int rc = peer->recv((char*)&commandType, 4);
@@ -81,7 +81,6 @@ public:
 			return -1;
 		}
 		commandType = ntohl(commandType);
-		cout << commandType<<endl;
 		return commandType;
 	}
 
